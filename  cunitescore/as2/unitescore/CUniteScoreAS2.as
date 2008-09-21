@@ -155,8 +155,8 @@ class unitescore.CUniteScoreAS2 {
 			} else {
 				_root.kongregateStats.submit(category, score);
 			}
-		} else if (url.indexOf("surpass.com") > -1) {
-			//surpass
+		} else if (url.indexOf("surpassarcade.com") > -1) {
+			//surpassarcade.com
 			if (category == mainScoreCategory) sendLocalConnection.send("spapi", "scoreSend", score);
 		} else if ((url.indexOf("mindjolt.com") > -1)||(url.indexOf("thisarcade.com") > -1)) {
 			//mindjolt.com & thisarcade.com
