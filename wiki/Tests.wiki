@@ -1,4 +1,4 @@
-#portals where the code is tested and works
+#portals where the code has bee validated
 
 = AS3 =
 *pepere.org
