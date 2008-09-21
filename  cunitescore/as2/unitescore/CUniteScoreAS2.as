@@ -31,7 +31,7 @@ class unitescore.CUniteScoreAS2 {
 	/**
 	 * Common LocalConnection object
 	 */
-	private var localConnection:LocalConnection;
+	private var sendLocalConnection:LocalConnection;
 	
 	/**
 	 * Main score category, for portals that don't implement score categories
@@ -43,13 +43,17 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	private var url:String;
 	
+	/**
+	 * Setinterval object
+	 */
+	private var interval:Number;
 	
-	//****************************************
-	//* Scores systems that need a special ID
-	//****************************************
+	//********************************************************
+	//* Scores systems that need a specific vars (ID, etc...)
+	//********************************************************
 	
 	/**
-	 * the game name for ibProArcade score submition
+	 * The game name for ibProArcade score submition
 	 */
 	private var ibProArcadeGameName:String;
 	/**
@@ -57,6 +61,10 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	private var mochiadsGameID:String;
 	private var mochiadsBoardID:String;
+	/**
+	 * Bubblebox GUI object
+	 */
+	private var bubbleboxGUI:MovieClip;
 
 	
 	/**
@@ -66,39 +74,28 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	function CUniteScoreAS2(urlDebug:String,paramsDebug:Object) {
 		_root._lockroot = true;
+		_root._cuniscoreContext = this; //save the context for callbacks
 		
 		//get the hosting url
 		if (urlDebug == undefined) url = _root._url;
 		else url = urlDebug;
 		
 		//get the debug root parameters
-		if (paramsDebug!=undefined) {
+		if (paramsDebug != undefined) {
+			trace("paramsDebug, debug swf url parameters :");
 			for ( var property in paramsDebug ) {
+				trace("property("+property+") = "+paramsDebug[property]);
 				_root[property] = paramsDebug[property];
 			}
+			trace("");
 		}
 		
 		init();
 	}
 
-	/**
-	 * init method called by the constructor
-	 */
-	private function init():Void {
-		localConnection = new LocalConnection();
-		if (url.indexOf("kongregate.com") > -1) {
-			// Kongregate.com init
-			_root.kongregateServices.connect();
-		} else if (url.indexOf("gamegarage.co.uk") > -1) {
-			// Gamegarage.co.uk init (tracking code)
-			if (_root.game_id != undefined && _root.user_id != undefined) {
-				var lv:LoadVars = new LoadVars();
-				lv.game_id = _root.game_id;
-				lv.user_id = _root.user_id;
-				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
-			}
-		}
-	}
+	//***************************************
+	//* Public methods
+	//***************************************
 	
 	/**
 	 * If your game use score categories, call this method to set the category that will be used to submit the score on portals that don't manage score categories.
@@ -160,13 +157,13 @@ class unitescore.CUniteScoreAS2 {
 			}
 		} else if (url.indexOf("surpass.com") > -1) {
 			//surpass
-			if (category == mainScoreCategory) localConnection.send("spapi", "scoreSend", score);
+			if (category == mainScoreCategory) sendLocalConnection.send("spapi", "scoreSend", score);
 		} else if ((url.indexOf("mindjolt.com") > -1)||(url.indexOf("thisarcade.com") > -1)) {
 			//mindjolt.com & thisarcade.com
 			if (category == mainScoreCategory) {
-				localConnection.send(_root.com_mindjolt_api, "submitScore", score);
+				sendLocalConnection.send(_root.com_mindjolt_api, "submitScore", score);
 			} else {
-				localConnection.send(_root.com_mindjolt_api, "submitScore", score, category);
+				sendLocalConnection.send(_root.com_mindjolt_api, "submitScore", score, category);
 			}
 		} else if (url.indexOf("hallpass.com") > -1) {
 			//hallpass.com
@@ -183,12 +180,34 @@ class unitescore.CUniteScoreAS2 {
 					lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/score.php", lv, "POST");
 				}
 			}
-		} else if (_root._url.indexOf("pepere.org") > -1) {
+		} else if (url.indexOf("pepere.org") > -1) {
+			//pepere.org
 			if (category == mainScoreCategory) {
 				if (ExternalInterface.available) {
 					ExternalInterface.call("saveGlobalScore", score);
 				} else {
 					fscommand("saveGlobalScore", score + "");
+				}
+			}
+		} else if (url.indexOf("bubblebox.com") > -1) {
+			//bubblebox.com
+			if (category == mainScoreCategory) {
+				_root.bubbleboxPendingScore = score; // to be used once the bubblebox component is loaded
+				if (bubbleboxGUI != undefined) {
+					showBubbleboxScoreGUI();
+				} else {
+					bubbleboxGUI = _root.createEmptyMovieClip("bubbleboxgui_mc", 10336);
+					bubbleboxGUI._x = Stage.width/2 - 200;
+					bubbleboxGUI._y = Stage.height/2 - 100;
+					
+					var myLoader:MovieClipLoader = new MovieClipLoader();
+					var myListener:Object = new Object();					
+					myListener.onLoadError = function (target_mc:MovieClip, errorCode:String) { trace("load error " + errorCode); };
+					//myListener.onLoadStart = function () { trace("load start"); }; myListener.onLoadProgress = function () { trace("load progress"); };
+					myListener.onLoadInit = bubbleboxComplete;
+					
+					myLoader.addListener(myListener);
+					myLoader.loadClip(_root.bubbleboxApiPath+"?bubbleboxGameID="+_root.bubbleboxGameID, bubbleboxGUI);
 				}
 			}
 		} else if ((ibProArcadeGameName != undefined) && (_root.isUser == 1)) {
@@ -200,5 +219,51 @@ class unitescore.CUniteScoreAS2 {
 		} else if ((mochiadsGameID != undefined) && (mochiadsBoardID != undefined)) {
 			MochiScores.showLeaderboard( {boardID : mochiadsBoardID, score : score} );
 		}
+	}
+	
+	//***************************************
+	//* Private methods
+	//***************************************
+	
+	/**
+	 * init method called by the constructor
+	 */
+	private function init():Void {
+		sendLocalConnection = new LocalConnection();
+		sendLocalConnection.onStatus = function (info:Object):Void { trace("localConnection " + info.level+" "+info); };
+		
+		if (url.indexOf("kongregate.com") > -1) {
+			// Kongregate.com init
+			_root.kongregateServices.connect();
+		} else if (url.indexOf("gamegarage.co.uk") > -1) {
+			// Gamegarage.co.uk init (tracking code)
+			if (_root.game_id != undefined && _root.user_id != undefined) {
+				var lv:LoadVars = new LoadVars();
+				lv.game_id = _root.game_id;
+				lv.user_id = _root.user_id;
+				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
+			}
+		}
+	}
+	
+	/**
+	 * Bubblebox GUI Movieclip loaded
+	 * @param	target_mc
+	 */
+	private function bubbleboxComplete(target_mc:MovieClip) : Void {
+		this = _root._cuniscoreContext;
+		trace("bubbleboxComplete(" + target_mc + ") _root.bubbleboxGameID=" + _root.bubbleboxGameID + " _root.bubbleboxPendingScore=" + _root.bubbleboxPendingScore);
+		//must wait a few milliseconds before using local connection
+		interval = setInterval(showBubbleboxScoreGUI , 500);
+	}
+	
+	/**
+	 * Send the score to bubblebox GUI
+	 */
+	private function showBubbleboxScoreGUI():Void {
+		this = _root._cuniscoreContext;
+		clearInterval(interval);
+		trace("showBubbleboxScoreGUI");
+		sendLocalConnection.send("bubbleboxRcvApi" + _root.bubbleboxGameID, "sendScore", _root.bubbleboxPendingScore);
 	}
 }

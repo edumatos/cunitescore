@@ -10,6 +10,8 @@
 	import flash.events.Event;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
+	import flash.display.StageAlign;
+	import flash.display.StageScaleMode;
 	import unitescore.mochi.*;
 	
 	/**
@@ -34,7 +36,7 @@
 		 */
 		private var sendLocalConnection:LocalConnection = new LocalConnection();
 		
-		private var theroot:MovieClip;
+		public static var theroot:MovieClip;
 		private var mindJoltAPI:Object;
 		private var kongregateAPI:Object;
 		private var bubbleboxGUI:DisplayObject;
@@ -47,8 +49,8 @@
 		 * @param	theroot : root Movieclip
 		 * @param	urlDebug : To simulate a swf hosting url. Exple "kongregate.com".
 		 */
-		function CUniteScoreAS3(theroot:MovieClip,urlDebug:String=null,paramsDebug:Object=null) {
-			this.theroot = theroot;
+		function CUniteScoreAS3(root:MovieClip,urlDebug:String=null,paramsDebug:Object=null) {
+			CUniteScoreAS3.theroot = root;
 			//get the hosting url
 			if (urlDebug == null) url = theroot.stage.loaderInfo.url;
 			else url = urlDebug;
@@ -118,7 +120,7 @@
 						request.data = vars;
 						
 						urlLoader.load ( request );
-						//theroot.addChild ( urlLoader );
+						
 						bubbleboxGUI = urlLoader;
 					}
 				}
@@ -191,14 +193,15 @@
 		private function showBubbleboxScoreGUI ( score:int ):void {
 			trace ("[bubblebox API] showBubbleboxScoreGUI");
 			//Keep the GUI on TOP
-			//TODO check it is on top on every frame
+			//TODO check the GUI is on top on every frame
 			try {
 				theroot.removeChild(bubbleboxGUI);
 			} catch (e:Error) {
 			}
 			theroot.addChild(bubbleboxGUI);
-			bubbleboxGUI.x = theroot.stage.stageWidth / 2 - 200;
-			bubbleboxGUI.y = theroot.stage.stageHeight / 2 - 100;
+			
+			bubbleboxGUI.x = theroot.loaderInfo.width/2 - 200;
+			bubbleboxGUI.y = theroot.loaderInfo.height/2 - 100;
 			
 			try {
 				sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", score);
