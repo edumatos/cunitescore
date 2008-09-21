@@ -1,4 +1,4 @@
-#portals where the code has bee validated
+#portals where the code has been validated
 
 = AS3 =
 *pepere.org
@@ -16,3 +16,5 @@
 *mochiads leaderboards
 
 *bubblebox.com
+
+*kongregate.com
