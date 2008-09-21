@@ -1,14 +1,18 @@
 #portals where the code is tested and works
 
 = AS3 =
+*pepere.org
 
-pepere.org
-bubblebox.com
-kongregate.com
-mochiads leaderboards
+*bubblebox.com
+
+*kongregate.com
+
+*mochiads leaderboards
 
 
 = AS2 =
-pepere.org
-mochiads leaderboards
-bubblebox.com
+*pepere.org
+
+*mochiads leaderboards
+
+*bubblebox.com
