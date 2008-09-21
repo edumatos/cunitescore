@@ -139,8 +139,9 @@ class unitescore.CUniteScoreAS2 {
 		}
 
 		if (url.indexOf("nonoba.com") > -1) {
-			//nonoba
+			//nonoba.com
 			var nonoba_key:String;
+			//On nonoba.com you have to create a highscore for your game. Set the key to "totalscores" for your main score.
 			if (category == mainScoreCategory) {
 				nonoba_key = "totalscores";
 			} else {
@@ -149,7 +150,7 @@ class unitescore.CUniteScoreAS2 {
 			}
 			NonobaAPI.SubmitScore(nonoba_key, score, null);
 		} else if (url.indexOf("kongregate.com") > -1) {
-			//kongregate
+			//kongregate.com
 			_root.kongregateScores.setMode(category);
 			_root.kongregateScores.submit(score);
 		} else if (url.indexOf("surpassarcade.com") > -1) {

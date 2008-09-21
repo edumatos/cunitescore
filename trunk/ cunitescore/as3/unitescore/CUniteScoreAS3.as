@@ -13,6 +13,7 @@
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
 	import unitescore.mochi.*;
+	import unitescore.nonoba.*;
 	
 	/**
 	 * Use in the first frame of your game root MovieClip:
@@ -105,6 +106,31 @@
 			} else if (url.indexOf("kongregate.com") >= 0) {
 				if (category == mainScoreCategory) kongregateAPI.scores.submit(score);
 				else kongregateAPI.scores.submit(score, category);
+			} else if (url.indexOf("nonoba.com") >= 0) {
+				var nonoba_key:String;
+				//On nonoba.com you have to create a highscore for your game. Set the key to "totalscores" for your main score.
+				if (category == mainScoreCategory) {
+					nonoba_key = "totalscores";
+				} else {
+					//remove ' ' and '-' characters from the category name
+					nonoba_key = category.split(' ').join('').split('-').join('').toLowerCase();
+				}
+				NonobaAPI.SubmitScore(theroot.stage, nonoba_key, score, function(response:String){
+					switch(response){
+						case NonobaAPI.SUCCESS:{
+							trace("The Nonoba score was submitted successfully")
+							break;
+						}
+						case NonobaAPI.NOT_LOGGED_IN:{
+							trace("The Nonoba user is not logged in")
+							break;
+						}
+						case NonobaAPI.ERROR:{
+							trace("A Nonoba error occurred.")
+							break;
+						}
+					}
+				});
 			} else if (url.indexOf("bubblebox.com") >= 0) {
 				if (category == mainScoreCategory) {
 					if (bubbleboxGUI != null) showBubbleboxScoreGUI(score);
