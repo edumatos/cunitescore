@@ -150,11 +150,8 @@ class unitescore.CUniteScoreAS2 {
 			NonobaAPI.SubmitScore(nonoba_key, score, null);
 		} else if (url.indexOf("kongregate.com") > -1) {
 			//kongregate
-			if (category == mainScoreCategory) {
-				_root.kongregateStats.submit('Total scores', score);
-			} else {
-				_root.kongregateStats.submit(category, score);
-			}
+			_root.kongregateScores.setMode(category);
+			_root.kongregateScores.submit(score);
 		} else if (url.indexOf("surpassarcade.com") > -1) {
 			//surpassarcade.com
 			if (category == mainScoreCategory) sendLocalConnection.send("spapi", "scoreSend", score);
@@ -235,6 +232,7 @@ class unitescore.CUniteScoreAS2 {
 		if (url.indexOf("kongregate.com") > -1) {
 			// Kongregate.com init
 			_root.kongregateServices.connect();
+			_root.debug.text += "\n_root.kongregateServices.connect()";
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			// Gamegarage.co.uk init (tracking code)
 			if (_root.game_id != undefined && _root.user_id != undefined) {
