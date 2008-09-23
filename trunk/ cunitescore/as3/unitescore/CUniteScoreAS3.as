@@ -12,8 +12,11 @@
 	import flash.net.URLVariables;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.utils.getTimer;
+	import flash.utils.getDefinitionByName;
 	import unitescore.mochi.*;
 	import unitescore.nonoba.*;
+	
 	
 	/**
 	 * Use in the first frame of your game root MovieClip:
@@ -21,6 +24,39 @@
 	 * var scoreSubmitter:CUniteScoreAS3 = new CUniteScoreAS3(this);
 	 */
 	public class CUniteScoreAS3 {
+		
+		/**
+		 * Logo layouts
+		 */
+		static public var TOP:int = 0;
+		static public var TOP_RIGHT:int = 1;
+		static public var RIGHT:int = 2;
+		static public var BOTTOM_RIGHT:int = 3;
+		static public var BOTTOM:int = 4;
+		static public var BOTTOM_LEFT:int = 5;
+		static public var LEFT:int = 6;
+		static public var TOP_LEFT:int = 7;
+		static public var CENTER:int = 8;
+		
+		/**
+		 * Logo vars
+		 */
+		private var logoDuration:int;
+		private var logoStartStamp:int;
+		private var logoLayout:int;
+		private var logoSet:Boolean;
+		private var logo_mc:MovieClip;
+		private var logoKeys:Array = [ 
+			{ key:"kongregate", domain:"kongregate.com" } ,
+			{ key:"pepere", domain:"pepere.org" } ,
+			{ key:"bubblebox", domain:"bubblebox.com" } ,
+			{ key:"newgrounds", domain:"newgrounds.com" } ,
+			{ key:"nonoba", domain:"nonoba.com" } ,
+			{ key:"mindjolt", domain:"mindjolt.com" } ,
+			{ key:"addictinggames", domain:"addictinggames.com" } ,
+			{ key:"onemorelevel", domain:"onemorelevel.com" }
+		];
+		
 		/**
 		 * This category is used on portals that don't manage score categories.
 		 * If your game don't use score categories, you do'nt need to bother with this.
@@ -117,18 +153,9 @@
 				}
 				NonobaAPI.SubmitScore(theroot.stage, nonoba_key, score, function(response:String){
 					switch(response){
-						case NonobaAPI.SUCCESS:{
-							trace("The Nonoba score was submitted successfully")
-							break;
-						}
-						case NonobaAPI.NOT_LOGGED_IN:{
-							trace("The Nonoba user is not logged in")
-							break;
-						}
-						case NonobaAPI.ERROR:{
-							trace("A Nonoba error occurred.")
-							break;
-						}
+						case NonobaAPI.SUCCESS:{ trace("The Nonoba score was submitted successfully"); break; }
+						case NonobaAPI.NOT_LOGGED_IN: { trace("The Nonoba user is not logged in"); break; }
+						case NonobaAPI.ERROR: { trace("A Nonoba error occurred."); break; }
 					}
 				});
 			} else if (url.indexOf("bubblebox.com") >= 0) {
@@ -158,10 +185,106 @@
 			}
 		}
 		
+		
+		/**
+		 * Show a portal logo (if assets have been embedded in your game).
+		 * Filters arrays contains String values like "mindjolt", "pepere", "bubblebox", "kongregate" etc...
+		 * @param	layout Position of the log (TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT, CENTER)
+		 * @param	duration Duration in milliseconds (minimum is 2 seconds)
+		 * @param	urlOutFilters List of portals you don't want to dislpay the logo.
+		 * @param	urlInFilters List of portals you want to dislpay the logo.
+		 */
+		public function showLogo(layout:int = 3 /*CUniteScoreAS3.BOTTOM_RIGHT*/, duration:int = 5000, urlOutFilters:Array = null, urlInFilters:Array = null):void {
+			//If the log is already displayed, don't do anything
+			if (logo_mc != null) return;
+			if (duration < 2000) duration = 2000; //min 2 seconds
+			var logoClass:Class;
+			var i:int;
+			for (i = logoKeys.length - 1; i >= 0; i--) {
+				logoKeys
+				if (url.indexOf(logoKeys[i].domain) >= 0) {
+					if (filterOK(logoKeys[i].key, urlOutFilters, urlInFilters)) {
+						// Each entry in the array logoKeys define a 'key' property (String). The logo MovieClip has to be linked to a class called "unistescore.MC[the logo key defined in the logoKeys array]".
+						// Exple unitescore.kongregateMC , unitescore.bubbleboxMC etc...
+						logoClass = Class(getDefinitionByName("unitescore.MC" + logoKeys[i].key));
+					}
+				}
+			}
+			
+			//A logo class has been found, we have a log for this portal.
+			if (logoClass) {
+				//Embed in try catch in case the logo is not a MovieClip ?
+				try {
+					//trace("logoClass=" + logoClass);
+					logo_mc = MovieClip(new logoClass());
+					logoDuration = duration;
+					logoLayout = layout;
+					logoSet = false;
+					logoStartStamp = getTimer();
+					logo_mc.alpha = 0;
+					logo_mc.addEventListener(Event.ENTER_FRAME, logoLoop);
+				} catch (e:Error) {
+					logo_mc = null;
+					trace("Logo instance creation failed : " + e);
+				}
+			}
+		}
+		
+		
 		//***************************************
 		//* Private methods
 		//***************************************
 
+		private function logoLoop(ev:Event):void {
+			if (getTimer() - logoStartStamp > logoDuration) {
+				logo_mc.removeEventListener(Event.ENTER_FRAME, logoLoop);
+				try {
+					theroot.removeChild(logo_mc);
+				} catch (e:Error) {
+					trace("Logo remove error : " + e);
+				}
+			} else {
+				if (!logoSet) {
+					// theroot.loaderInfo.height and theroot.loaderInfo.width are not always ready on the first frame; 
+					try {
+						if ( (logoLayout == TOP_LEFT) || (logoLayout == TOP) || (logoLayout == TOP_RIGHT) ) {
+							logo_mc.y = 10;
+						} else if ( (logoLayout == BOTTOM_LEFT) || (logoLayout == BOTTOM) || (logoLayout == BOTTOM_RIGHT)) {
+							logo_mc.y = theroot.loaderInfo.height - logo_mc.height - 10;
+						} else if (logoLayout == CENTER) {
+							logo_mc.y = theroot.loaderInfo.height/2 - logo_mc.height/2;
+						}
+						
+						if ( (logoLayout == TOP_LEFT) || (logoLayout == LEFT) || (logoLayout == BOTTOM_LEFT) ) {
+							logo_mc.x = 10;
+						} else if ( (logoLayout == TOP_RIGHT) || (logoLayout == RIGHT) || (logoLayout == BOTTOM_RIGHT)) {
+							logo_mc.x = theroot.loaderInfo.width - logo_mc.width - 10;
+						} else if (logoLayout == CENTER) {
+							logo_mc.x = theroot.loaderInfo.width/2 - logo_mc.width/2;
+						}
+						//show the log on top
+						theroot.addChild(logo_mc);
+						logoSet = true;
+						logoStartStamp = getTimer();
+					} catch (e:Error) {
+						trace("Logo position failed : " + e);
+					}
+				} else {
+					if (getTimer() - logoStartStamp > logoDuration - 1000) {
+						if (logo_mc.alpha > 0) {
+							logo_mc.alpha = (logoStartStamp + logoDuration - getTimer()) / 1000; if (logo_mc.alpha <= 0) logo_mc.alpha = 0;
+						}
+					} else {
+						if (logo_mc.alpha < 1) {
+							logo_mc.alpha = (getTimer() - logoStartStamp) / 1000; if (logo_mc.alpha >= 1) logo_mc.alpha = 1;
+						}
+					}
+				}
+			}
+		}
+		
+
+		
 		/**
 		 * Called by the constructor.
 		 */
@@ -244,6 +367,39 @@
 					trace("LocalConnection.send() failed");
 					break;
 			}
+		}
+		
+		/**
+		 * Check if the key word is OK with the fileters.
+		 * If the key is in urlOutFilters, returns false.
+		 * Else If the urlInFilters is not null and key is in urlInFilters, return false
+		 * Else returns true
+		 * @param	key
+		 * @param	iutFilters
+		 * @param	inFilters
+		 * @return
+		 */
+		private function filterOK(key:String, outFilters:Array, inFilters:Array):Boolean {
+			var i:int;
+			if (outFilters != null) {
+				for (i = outFilters.length - 1; i >= 0; i--) {
+					if (outFilters[i].indexOf(key) >= 0) {
+						//the key is in the outFilters
+						return false;
+					}
+				}
+			}
+			if (inFilters != null) {
+				for (i = inFilters.length - 1; i >= 0; i--) {
+					if (inFilters[i].indexOf(key) >= 0) {
+						//the key is in the inFilters
+						return true;
+					}
+				}
+				//the key is not in inFilters
+				return false;
+			}
+			return true;
 		}
 	}
 }
