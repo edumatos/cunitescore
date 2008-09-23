@@ -1,4 +1,4 @@
-#summary How to use this classes.
+#summary How to use these classes.
 #labels Phase-Implementation
 
 = Introduction =
