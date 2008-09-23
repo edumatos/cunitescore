@@ -68,7 +68,7 @@ class unitescore.CUniteScoreAS2 {
 		url = urlDebug || _root._url;
 		
 		//get the debug root parameters
-		if (paramsDebug! = undefined) {
+		if (paramsDebug != undefined) {
 			for ( var property in paramsDebug ) {
 				_root[property] = paramsDebug[property];
 			}
@@ -193,12 +193,15 @@ class unitescore.CUniteScoreAS2 {
 					fscommand("saveGlobalScore", score + "");
 				}
 			}
-		} else if ((ibProArcadeGameName != undefined) || (_root.isUser == "1")) {
+		} else if (ibProArcadeGameName != undefined) {
 			//ibProArcade compatible site
 			var lv : LoadVars = new LoadVars();
 			lv.gname = ibProArcadeGameName;
 			lv.gscore = score;
 			lv.sendAndLoad("index.php?act=Arcade&do=newscore", lv, "POST");
+		} else if (_root.isUser == "1") {
+			_root.gscore = score;
+			getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
 		} else if ((mochiadsGameID != undefined) && (mochiadsBoardID != undefined)) {
 			MochiScores.showLeaderboard( {boardID : mochiadsBoardID, score : score} );
 		}
