@@ -1,7 +1,33 @@
 #summary How to use this classes.
+#labels Phase-Implementation
 
 = Introduction =
 
 = Actionscript 2 =
 
-TODO: add documentation
+First of all you would need to checkout the AS2 version of unitescore from the [http://code.google.com/p/cunitescore/source/checkout Source page] to your project folder.
+Be sure you checkout only the AS2 version, ie:
+https://cunitescore.googlecode.com/svn/trunk/as2/unitescore
+
+== Basic use ==
+
+In the first frame of your movie, import the class and create an instance of it:
+{{{
+import unitescore.CUniteScoreAS2;
+
+var scoreSubmitter : CUniteScoreAS2 = new CUniteScoreAS2();
+}}}
+you can as well instantiate the mochiads leaderboard in the same frame:
+{{{
+scoreSubmitter.initMochiAdsLeaderboard("xxx", "yyy");
+}}}
+where *"xxx"* is your game mochiadID and *"yyy"* is your leaderboardID.
+
+In game over, either when submitting through a button or in the last frame:
+{{{
+scoreSubmitter.sendScore(score);
+}}}
+where *score* is the variable name of your game score.
+
+You're done!
+Just adding those lines of code your game will post scores to the different portals listed on the [http://code.google.com/p/cunitescore/ Project Homepage].
