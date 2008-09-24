@@ -27,6 +27,11 @@
 	public class CUniteScoreAS3 {
 		
 		/**
+		 * TextArea debug
+		 */
+		public var DEBUG:Boolean = false;
+		
+		/**
 		 * Logo layouts
 		 */
 		static public var TOP:int = 0;
@@ -51,7 +56,7 @@
 			{ mcclass:"MCkongregate", domain:"kongregate.com" } ,
 			{ mcclass:"MCpepere", domain:"pepere.org" } ,
 			{ mcclass:"MCbubblebox", domain:"bubblebox.com" } ,
-			{ mcclass:"MCnewgrounds", domain:"newgrounds.com" } ,
+			{ mcclass:"MCnewgrounds", domain:"ungrounded.net" } ,
 			{ mcclass:"MCnonoba", domain:"nonoba.com" } ,
 			{ mcclass:"MCmindjolt", domain:"mindjolt.com" } ,
 			{ mcclass:"MCaddictinggames", domain:"addictinggames.com" } ,
@@ -104,6 +109,14 @@
 			// init local connection listener
 			sendLocalConnection.addEventListener(StatusEvent.STATUS, onConnStatus);
 			init();
+			
+			if (DEBUG) {
+				theroot.debug.text += "CUniteScoreAS3 url=" + url + "\n";
+				theroot.debug.text += "CUniteScoreAS3 gameParams=\n";
+				for (var p:String in gameParams) {
+					theroot.debug.text += "     "+p+"="+gameParams[p]+"\n";
+				}
+			}
 		}
 		
 		//***************************************
@@ -156,6 +169,8 @@
 			var urlLoader:URLLoader;
 			var loader:Loader;
 			
+			if (DEBUG) theroot.debug.text += "sendScore score=" + score + " category=" + category + "\n";
+
 			if (url.indexOf("pepere.org") >= 0) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
 			} else if (url.indexOf("mindjolt.com") >= 0) {
@@ -208,6 +223,8 @@
 				urlRequest.data = urlVars;
 				urlLoader = new URLLoader();
 				urlLoader.load(urlRequest);
+				
+				if (DEBUG) theroot.debug.text += "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n";
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				// Default score submittion is mochiads leaderboards
 				if (category == mainScoreCategory) {
