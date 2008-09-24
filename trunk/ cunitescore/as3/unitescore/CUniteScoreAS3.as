@@ -6,6 +6,7 @@
 	import flash.display.LoaderInfo;
 	import flash.display.Loader;
 	import flash.net.LocalConnection;
+	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.events.Event;
 	import flash.net.URLRequestMethod;
@@ -46,15 +47,16 @@
 		private var logoLayout:int;
 		private var logoSet:Boolean;
 		private var logo_mc:MovieClip;
-		private var logoKeys:Array = [ 
-			{ key:"kongregate", domain:"kongregate.com" } ,
-			{ key:"pepere", domain:"pepere.org" } ,
-			{ key:"bubblebox", domain:"bubblebox.com" } ,
-			{ key:"newgrounds", domain:"newgrounds.com" } ,
-			{ key:"nonoba", domain:"nonoba.com" } ,
-			{ key:"mindjolt", domain:"mindjolt.com" } ,
-			{ key:"addictinggames", domain:"addictinggames.com" } ,
-			{ key:"onemorelevel", domain:"onemorelevel.com" }
+		private var logoClasses:Array = [ 
+			{ mcclass:"MCkongregate", domain:"kongregate.com" } ,
+			{ mcclass:"MCpepere", domain:"pepere.org" } ,
+			{ mcclass:"MCbubblebox", domain:"bubblebox.com" } ,
+			{ mcclass:"MCnewgrounds", domain:"newgrounds.com" } ,
+			{ mcclass:"MCnonoba", domain:"nonoba.com" } ,
+			{ mcclass:"MCmindjolt", domain:"mindjolt.com" } ,
+			{ mcclass:"MCaddictinggames", domain:"addictinggames.com" } ,
+			{ mcclass:"MCgamesgarden", domain:"games-garden.com" } ,
+			{ mcclass:"MConemorelevel", domain:"onemorelevel.com" }
 		];
 		
 		/**
@@ -63,6 +65,11 @@
 		 */
 		public var mainScoreCategory:String = "";
 		
+		/**
+		 * The game name for ibProArcade score submition
+		 */
+		private var ibProArcadeGameName:String;
+	
 		/**
 		 * Mochiads parameters
 		 */
@@ -129,11 +136,26 @@
 		}
 		
 		/**
+		 * Call this if you want to use ibProArcade scores.
+		 * @param	gameName The game name on ibProArcade
+		 */
+		public function initIbProArcade(gameName:String):void {
+			ibProArcadeGameName = gameName;
+		}
+		
+		/**
 		 * Call this method to submit the score. The method detect automatically on wich portal your game is hosted and call the corresponding API.
 		 * @param	score : Score of the player
 		 * @param	category : Category (example : "easy", "medium", "hard", "super hard", ...). Optional. If you use score categories, don't forget to call also sendScore(scoreVar) for portals that don't manage the score categories.
 		 */
 		public function sendScore(score : int, category : String = "") : void {
+			
+			//Local vars that can be used by portal methods
+			var urlRequest:URLRequest;
+			var urlVars:URLVariables;
+			var urlLoader:URLLoader;
+			var loader:Loader;
+			
 			if (url.indexOf("pepere.org") >= 0) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
 			} else if (url.indexOf("mindjolt.com") >= 0) {
@@ -163,20 +185,29 @@
 					if (bubbleboxGUI != null) showBubbleboxScoreGUI(score);
 					else {
 						pendingScore = score; // to be used once the bubblebox component is loaded
-						var urlLoader:Loader = new Loader();
-						urlLoader.contentLoaderInfo.addEventListener ( Event.COMPLETE, bubbleboxComplete );
+						loader = new Loader();
+						loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, bubbleboxComplete );
 						trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
-						var request:URLRequest = new URLRequest( gameParams.bubbleboxApiPath);
-						var vars:URLVariables = new URLVariables();
-						vars.bubbleboxGameID = gameParams.bubbleboxGameID;
-						request.method = URLRequestMethod.GET;
-						request.data = vars;
+						urlRequest = new URLRequest( gameParams.bubbleboxApiPath);
+						urlVars = new URLVariables();
+						urlVars.bubbleboxGameID = gameParams.bubbleboxGameID;
+						urlRequest.method = URLRequestMethod.GET;
+						urlRequest.data = urlVars;
 						
-						urlLoader.load ( request );
+						loader.load ( urlRequest );
 						
-						bubbleboxGUI = urlLoader;
+						bubbleboxGUI = loader;
 					}
 				}
+			} else if ((ibProArcadeGameName != null) && (gameParams.isUser == 1)) {
+				urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
+				urlVars = new URLVariables();
+				urlVars.gname = ibProArcadeGameName; //ibProArcadeGameName must be initialized with the method initIbProArcade
+				urlVars.gscore = score;
+				urlRequest.method = URLRequestMethod.POST;
+				urlRequest.data = urlVars;
+				urlLoader = new URLLoader();
+				urlLoader.load(urlRequest);
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				// Default score submittion is mochiads leaderboards
 				if (category == mainScoreCategory) {
@@ -188,11 +219,9 @@
 		
 		/**
 		 * Show a portal logo (if assets have been embedded in your game).
-		 * Filters arrays contains String values like "mindjolt", "pepere", "bubblebox", "kongregate" etc...
+		 * If you don't want to feature the logo of a portal on your game, just remove / don'yt embed the corresponding asset int your game.
 		 * @param	layout Position of the log (TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT, CENTER)
 		 * @param	duration Duration in milliseconds (minimum is 2 seconds)
-		 * @param	urlOutFilters List of portals you don't want to dislpay the logo.
-		 * @param	urlInFilters List of portals you want to dislpay the logo.
 		 */
 		public function showLogo(layout:int = 3 /*CUniteScoreAS3.BOTTOM_RIGHT*/, duration:int = 5000, urlOutFilters:Array = null, urlInFilters:Array = null):void {
 			//If the log is already displayed, don't do anything
@@ -200,14 +229,11 @@
 			if (duration < 2000) duration = 2000; //min 2 seconds
 			var logoClass:Class;
 			var i:int;
-			for (i = logoKeys.length - 1; i >= 0; i--) {
-				logoKeys
-				if (url.indexOf(logoKeys[i].domain) >= 0) {
-					if (filterOK(logoKeys[i].key, urlOutFilters, urlInFilters)) {
-						// Each entry in the array logoKeys define a 'key' property (String). The logo MovieClip has to be linked to a class called "unistescore.MC[the logo key defined in the logoKeys array]".
-						// Exple unitescore.kongregateMC , unitescore.bubbleboxMC etc...
-						logoClass = Class(getDefinitionByName("unitescore.MC" + logoKeys[i].key));
-					}
+			for (i = logoClasses.length - 1; i >= 0; i--) {
+				if (url.indexOf(logoClasses[i].domain) >= 0) {
+					// Each entry in the array logoClasses define a 'mcclass' property (String), anme of the logo MovieClip class.
+					// All logo classes must be in the package unitescore
+					logoClass = Class(getDefinitionByName("unitescore." + logoClasses[i].mcclass));
 				}
 			}
 			
@@ -235,6 +261,11 @@
 		//* Private methods
 		//***************************************
 
+		/**
+		 * Manage logo display (fade in fade out) on every frame
+		 * TODO : check the logo is still on top of the root MovieClip.
+		 * @param	ev
+		 */
 		private function logoLoop(ev:Event):void {
 			if (getTimer() - logoStartStamp > logoDuration) {
 				logo_mc.removeEventListener(Event.ENTER_FRAME, logoLoop);
@@ -245,7 +276,9 @@
 				}
 			} else {
 				if (!logoSet) {
-					// theroot.loaderInfo.height and theroot.loaderInfo.width are not always ready on the first frame; 
+					// theroot.loaderInfo.height and theroot.loaderInfo.width are not always ready on the first frame of the game.
+					// We need this info to display the logo on the right position.
+					// So we wait here and check on every loop taht loaderInfo.width and loaderInfo.height are available.
 					try {
 						if ( (logoLayout == TOP_LEFT) || (logoLayout == TOP) || (logoLayout == TOP_RIGHT) ) {
 							logo_mc.y = 10;
@@ -289,17 +322,17 @@
 		 * Called by the constructor.
 		 */
 		private function init():void {
-			var urlLoader:Loader = new Loader();
+			var loader:Loader = new Loader();
 			if (url.indexOf("mindjolt.com") >= 0) {
 				// manually load the API
-				urlLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, mindJoltComplete);
-				urlLoader.load(new URLRequest(gameParams.mjPath || "http://static.mindjolt.com/api/as3/scoreapi_as3_local.swf"));
-				theroot.addChild(urlLoader);
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, mindJoltComplete);
+				loader.load(new URLRequest(gameParams.mjPath || "http://static.mindjolt.com/api/as3/scoreapi_as3_local.swf"));
+				theroot.addChild(loader);
 			} else if (url.indexOf("kongregate.com") >= 0) {
 				// The API path. The debug version ("shadow" API) will load if testing locally.
-				urlLoader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
-				urlLoader.load ( new URLRequest( gameParams.api_path || "http://www.kongregate.com/flash/API_AS3_Local.swf") );
-				theroot.addChild ( urlLoader );
+				loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
+				loader.load ( new URLRequest( gameParams.api_path || "http://www.kongregate.com/flash/API_AS3_Local.swf") );
+				theroot.addChild ( loader );
 			}
 		}
 		
@@ -367,39 +400,6 @@
 					trace("LocalConnection.send() failed");
 					break;
 			}
-		}
-		
-		/**
-		 * Check if the key word is OK with the fileters.
-		 * If the key is in urlOutFilters, returns false.
-		 * Else If the urlInFilters is not null and key is in urlInFilters, return false
-		 * Else returns true
-		 * @param	key
-		 * @param	iutFilters
-		 * @param	inFilters
-		 * @return
-		 */
-		private function filterOK(key:String, outFilters:Array, inFilters:Array):Boolean {
-			var i:int;
-			if (outFilters != null) {
-				for (i = outFilters.length - 1; i >= 0; i--) {
-					if (outFilters[i].indexOf(key) >= 0) {
-						//the key is in the outFilters
-						return false;
-					}
-				}
-			}
-			if (inFilters != null) {
-				for (i = inFilters.length - 1; i >= 0; i--) {
-					if (inFilters[i].indexOf(key) >= 0) {
-						//the key is in the inFilters
-						return true;
-					}
-				}
-				//the key is not in inFilters
-				return false;
-			}
-			return true;
 		}
 	}
 }
