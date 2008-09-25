@@ -7,7 +7,7 @@
 
 First of all you would need to checkout the AS2 version of unitescore from the [http://code.google.com/p/cunitescore/source/checkout Source page] to your project folder.
 Be sure you checkout only the AS2 version, ie:
-https://cunitescore.googlecode.com/svn/trunk/as2/unitescore
+https://cunitescore.googlecode.com/svn/trunk/ cunitescore/as2/unitescore
 
 == Basic use ==
 
