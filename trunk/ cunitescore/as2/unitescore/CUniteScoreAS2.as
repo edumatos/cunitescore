@@ -8,11 +8,12 @@
  * *************************
  * 
  * //In _root Frame 1 :
- * import unitescore.*;
- * var scoreSubmitter:CUniteScoreAS2 = new CUniteScoreAS2();
- * //Optional init
+ * import unitescore.CUniteScoreAS2;
+ * var scoreSubmitter : CUniteScoreAS2 = new CUniteScoreAS2();
+ * 
+ * //Optional init, XXX = mochiadID, YYY = boardID, ZZZ = game name.
  * scoreSubmitter.initMochiAdsLeaderboard("XXX","YYY");
- * scoreSubmitter.initIbProArcade("XXX");
+ * scoreSubmitter.initIbProArcade("ZZZ");
  * 
  * //In game over :
  * _root.scoreSubmitter.sendScore(myScoreVar);
@@ -20,14 +21,10 @@
  */
 
 import flash.external.ExternalInterface;
-import unitescore.nonoba.*;
+import unitescore.nonoba.NonobaAPI;
 import unitescore.mochi.*;
 
 class unitescore.CUniteScoreAS2 {
-	var _user_name:String;
-
-	
-
 	/**
 	 * Common LocalConnection object
 	 */
@@ -72,22 +69,20 @@ class unitescore.CUniteScoreAS2 {
 	 * @param	urlDebug : To simulate a swf hosting url. Exple "kongregate.com".
 	 * @param	paramsDebug : To simulate a list of url parameters passed to the game swf.
 	 */
-	function CUniteScoreAS2(urlDebug:String,paramsDebug:Object) {
+	public function CUniteScoreAS2(urlDebug:String, paramsDebug:Object) {
 		_root._lockroot = true;
 		_root._cuniscoreContext = this; //save the context for callbacks
 		
 		//get the hosting url
-		if (urlDebug == undefined) url = _root._url;
-		else url = urlDebug;
+		url = urlDebug || _root._url;
 		
 		//get the debug root parameters
-		if (paramsDebug != undefined) {
-			trace("paramsDebug, debug swf url parameters :");
+		if (paramsDebug) {
+			trace("paramsDebug, debug swf url parameters : ");
 			for ( var property in paramsDebug ) {
-				trace("property("+property+") = "+paramsDebug[property]);
+				trace("property(" + property + ") = " + paramsDebug[property]);
 				_root[property] = paramsDebug[property];
 			}
-			trace("");
 		}
 		
 		init();
@@ -99,9 +94,9 @@ class unitescore.CUniteScoreAS2 {
 	
 	/**
 	 * If your game use score categories, call this method to set the category that will be used to submit the score on portals that don't manage score categories.
-	 * Exple : If you have 3 categories "easy", "medium", and "hard", you can call setMainScoreCategory("hard"). The score submitted on portals without score categories, will be the score of the "hard" category.
+	 * Example : If you have 3 categories "easy", "medium", and "hard", you can call setMainScoreCategory("hard"). The score submitted on portals without score categories, will be the score of the "hard" category.
 	 * If you don't call this method, the default main score category is "".
-	 * If your game don't use score categories, you do'nt need to bother with this.
+	 * If your game don't use score categories, you don't need to bother with this.
 	 * @param	category
 	 */
 	public function setMainScoreCategory(category:String):Void {
@@ -114,7 +109,7 @@ class unitescore.CUniteScoreAS2 {
 	 * @param	gameid The mochiads game id 
 	 * @param	boardid The leaderboard id that you created on mochiads site for your game
 	 */
-	public function initMochiAdsLeaderboard(gameid:String,boardid:String):Void {
+	public function initMochiAdsLeaderboard(gameid:String, boardid:String):Void {
 		mochiadsGameID = gameid;
 		mochiadsBoardID = boardid;
 		MochiServices.connect(mochiadsGameID);
@@ -122,7 +117,7 @@ class unitescore.CUniteScoreAS2 {
 	
 	/**
 	 * Call this if you want to use ibProArcade scores.
-	 * @param	gameName The game name on ibProArcade
+	 * @param	gameName The game name as in the swf name.
 	 */
 	public function initIbProArcade(gameName:String):Void {
 		ibProArcadeGameName = gameName;
@@ -133,23 +128,18 @@ class unitescore.CUniteScoreAS2 {
 	 * @param	score : Score of the player
 	 * @param	category : Category (example : "easy", "medium", "hard", "super hard", ...). Optional. If you use score categories, don't forget to call also sendScore(scoreVar) for portals that don't manage the score categories.
 	 */
-	function sendScore(score:Number , category:String):Void {
-		if (category == undefined) {
-			category = mainScoreCategory;
-		}
+	public function sendScore(score:Number, category:String):Void {
+		
+		category = category || mainScoreCategory;
 		
 		var lv:LoadVars;
 
 		if (url.indexOf("nonoba.com") > -1) {
 			//nonoba.com
 			var nonoba_key:String;
-			//On nonoba.com you have to create a highscore for your game. Set the key to "totalscores" for your main score.
-			if (category == mainScoreCategory) {
-				nonoba_key = "totalscores";
-			} else {
-				//remove ' ' and '-' characters from the category name
-				nonoba_key = category.split(' ').join('').split('-').join('').toLowerCase();
-			}
+			//You have to create a highscore for your game. Set the key to "totalscores" for your main score.
+			//nonoba_key is "totalscores" if there's no category name, otherwise this code removes ' ' and '-' characters from it.
+			nonoba_key = (category == mainScoreCategory) ? "totalscores" : category.split(' ').join('').split('-').join('').toLowerCase();
 			NonobaAPI.SubmitScore(nonoba_key, score, null);
 		} else if (url.indexOf("kongregate.com") > -1) {
 			//kongregate.com
@@ -157,8 +147,12 @@ class unitescore.CUniteScoreAS2 {
 			_root.kongregateScores.submit(score);
 		} else if (url.indexOf("surpassarcade.com") > -1) {
 			//surpassarcade.com
-			if (category == mainScoreCategory) sendLocalConnection.send("spapi", "scoreSend", score);
-		} else if ((url.indexOf("mindjolt.com") > -1)||(url.indexOf("thisarcade.com") > -1)) {
+			if (category == mainScoreCategory) {
+				localConnection.send("spapi", "submitScore", score);
+			} else {
+				localConnection.send("spapi", "submitScore", score, category);
+			}
+		} else if ((url.indexOf("mindjolt") > -1)||(url.indexOf("thisarcade.com") > -1)) {
 			//mindjolt.com & thisarcade.com
 			if (category == mainScoreCategory) {
 				sendLocalConnection.send(_root.com_mindjolt_api, "submitScore", score);
@@ -212,7 +206,7 @@ class unitescore.CUniteScoreAS2 {
 			}
 		} else if (url.indexOf("games-garden.com") > -1) {
 			//games-garden.com (derived from ibProArcade system)
-			if ((_root.isUser == 1) && (_root.gname != undefined)) {
+			if (_root.isUser == "1") {
 				lv = new LoadVars();
 				lv.gname = _root.gname;
 				lv.gscore = score;
