@@ -214,7 +214,19 @@
 						bubbleboxGUI = loader;
 					}
 				}
-			} else if ((ibProArcadeGameName != null) && (gameParams.isUser == 1)) {
+			} else if (url.indexOf("games-garden.com") > -1) {
+				//games-garden.com (derived from ibProArcade system)
+				if ((gameParams.isUser == 1) && (gameParams.gname)) {
+					urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
+					urlVars = new URLVariables();
+					urlVars.gname = gameParams.gname;
+					urlVars.gscore = score;
+					urlRequest.method = URLRequestMethod.POST;
+					urlRequest.data = urlVars;
+					urlLoader = new URLLoader();
+					urlLoader.load(urlRequest);
+				}
+			} else if (ibProArcadeGameName != null) {
 				urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
 				urlVars = new URLVariables();
 				urlVars.gname = ibProArcadeGameName; //ibProArcadeGameName must be initialized with the method initIbProArcade
