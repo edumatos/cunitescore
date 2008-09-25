@@ -137,6 +137,8 @@ class unitescore.CUniteScoreAS2 {
 		if (category == undefined) {
 			category = mainScoreCategory;
 		}
+		
+		var lv:LoadVars;
 
 		if (url.indexOf("nonoba.com") > -1) {
 			//nonoba.com
@@ -208,9 +210,17 @@ class unitescore.CUniteScoreAS2 {
 					myLoader.loadClip(_root.bubbleboxApiPath+"?bubbleboxGameID="+_root.bubbleboxGameID, bubbleboxGUI);
 				}
 			}
-		} else if ((ibProArcadeGameName != undefined) && (_root.isUser == 1)) {
+		} else if (url.indexOf("games-garden.com") > -1) {
+			//games-garden.com (derived from ibProArcade system)
+			if ((_root.isUser == 1) && (_root.gname != undefined)) {
+				lv = new LoadVars();
+				lv.gname = _root.gname;
+				lv.gscore = score;
+				lv.sendAndLoad("index.php?act=Arcade&do=newscore", lv, "POST");
+			}
+		} else if (ibProArcadeGameName != undefined) {
 			//ibProArcade compatible site
-			var lv:LoadVars = new LoadVars();
+			lv = new LoadVars();
 			lv.gname = ibProArcadeGameName;
 			lv.gscore = score;
 			lv.sendAndLoad("index.php?act=Arcade&do=newscore", lv, "POST");
