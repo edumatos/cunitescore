@@ -204,14 +204,10 @@ class unitescore.CUniteScoreAS2 {
 					myLoader.loadClip(_root.bubbleboxApiPath+"?bubbleboxGameID="+_root.bubbleboxGameID, bubbleboxGUI);
 				}
 			}
-		} else if (url.indexOf("games-garden.com") > -1) {
+		} else if ((url.indexOf("games-garden.com") > -1) && (_root.isUser == "1")) {
 			//games-garden.com (derived from ibProArcade system)
-			if (_root.isUser == "1") {
-				lv = new LoadVars();
-				lv.gname = _root.gname;
-				lv.gscore = score;
-				lv.sendAndLoad("index.php?act=Arcade&do=newscore", lv, "POST");
-			}
+				_root.gscore = score;
+				getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
 		} else if (ibProArcadeGameName != undefined) {
 			//ibProArcade compatible site
 			lv = new LoadVars();
