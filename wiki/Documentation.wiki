@@ -33,11 +33,9 @@ You're done!
 Just adding those lines of code your game will post scores to the different portals listed on the [http://code.google.com/p/cunitescore/ Project Homepage].
 
 
-
-
 == Basic use (classes) ==
 
-If you are using classes and your main code is in a class, then, on top of the code from your main class import the CUniteScoreAS2 class and create an instance of it:
+If you are using classes and your main code is in a class, then, on top of the code from your main class import the CUniteScoreAS2 class:
 {{{
 import unitescore.CUniteScoreAS2;
 }}}
