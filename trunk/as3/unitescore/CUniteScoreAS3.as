@@ -248,14 +248,23 @@
 		
 		/**
 		 * Show a portal logo (if assets have been embedded in your game).
-		 * If you don't want to feature the logo of a portal on your game, just remove / don'yt embed the corresponding asset int your game.
+		 * If you don't want to feature the logo of a portal on your game, just remove / don't embed the corresponding asset int your game.
 		 * @param	layout Position of the log (TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT, CENTER)
 		 * @param	duration Duration in milliseconds (minimum is 2 seconds)
 		 */
-		public function showLogo(layout:int = 3 /*CUniteScoreAS3.BOTTOM_RIGHT*/, duration:int = 5000, urlOutFilters:Array = null, urlInFilters:Array = null):void {
+		public function showLogo(layout:int = 3 /*CUniteScoreAS3.BOTTOM_RIGHT*/, duration:int = 5000):void {
 			//If the log is already displayed, don't do anything
 			if (logo_mc != null) return;
 			if (duration < 2000) duration = 2000; //min 2 seconds
+			
+			//Is loaderInfo ready ? If not we delay the showLogo method.
+			if (theroot.loaderInfo.bytesLoaded < theroot.loaderInfo.bytesTotal) {
+				logoLayout = layout;
+				logoDuration = duration;
+				theroot.loaderInfo.addEventListener (Event.COMPLETE, showLogoDelayed);
+				return;
+			}
+			
 			var logoClass:Class;
 			var i:int;
 			for (i = logoClasses.length - 1; i >= 0; i--) {
@@ -290,6 +299,14 @@
 		//* Private methods
 		//***************************************
 
+		/**
+		 * When the loaderInfo is not completed, a call to showLogo must be dealyed until it is completed.
+		 * @param	ev
+		 */
+		private function showLogoDelayed(ev:Event):void {
+			showLogo(logoLayout, logoDuration);
+		}
+		
 		/**
 		 * Manage logo display (fade in fade out) on every frame
 		 * TODO : check the logo is still on top of the root MovieClip.
