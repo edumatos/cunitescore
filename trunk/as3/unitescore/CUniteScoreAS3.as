@@ -56,12 +56,25 @@
 			{ mcclass:"MCkongregate", domain:"kongregate.com" } ,
 			{ mcclass:"MCpepere", domain:"pepere.org" } ,
 			{ mcclass:"MCbubblebox", domain:"bubblebox.com" } ,
-			{ mcclass:"MCnewgrounds", domain:"ungrounded.net" } ,
+			{ mcclass:"MCnewgrounds", domain:"ungrounded.net" } , //newgrounds games are hosted on ungrounded.net
 			{ mcclass:"MCnonoba", domain:"nonoba.com" } ,
 			{ mcclass:"MCmindjolt", domain:"mindjolt.com" } ,
 			{ mcclass:"MCaddictinggames", domain:"addictinggames.com" } ,
 			{ mcclass:"MCgamesgarden", domain:"games-garden.com" } ,
 			{ mcclass:"MConemorelevel", domain:"onemorelevel.com" }
+		];
+		
+		/**
+		 * Score parameters by domain
+		 */
+		private var scoreParams:Array = [ 
+			{ domain:"kongregate.com", GUI:false } ,
+			{ domain:"pepere.org", GUI:false } ,
+			{ domain:"bubblebox.com", GUI:true } ,
+			{ domain:"ungrounded.net", GUI:false } ,
+			{ domain:"nonoba.com", GUI:false } ,
+			{ domain:"mindjolt.com", GUI:false } ,
+			{ domain:"games-garden.com", GUI:false }
 		];
 		
 		/**
@@ -174,8 +187,8 @@
 			if (url.indexOf("pepere.org") >= 0) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
 			} else if (url.indexOf("mindjolt.com") >= 0) {
-				if (category == mainScoreCategory) mindJoltAPI.servicesubmitScore(score);
-				else mindJoltAPI.servicesubmitScore(score, category);
+				if (category == mainScoreCategory) mindJoltAPI.service.submitScore(score);
+				else mindJoltAPI.service.submitScore(score, category);
 			} else if (url.indexOf("kongregate.com") >= 0) {
 				if (category == mainScoreCategory) kongregateAPI.scores.submit(score);
 				else kongregateAPI.scores.submit(score, category);
@@ -292,6 +305,24 @@
 					trace("Logo instance creation failed : " + e);
 				}
 			}
+		}
+		
+		/**
+		 * Call this function to know if the score is powered on this portal by a Graphic User Interface.
+		 * Most of the score system are not powered by GUI but some of them like mochiads, bubblebox.com are.
+		 * @return true is the method sendScore will popup a GUI over your game. false if the sendScore method will be processed in background withtout a GUI.
+		 */
+		public function isScorePoweredByGUI():Boolean {
+			for (var i:int = 0; i < scoreParams.length;i++) {
+				if (url.indexOf(scoreParams[i].domain) >= 0) return scoreParams[i].GUI;
+			}
+			if (ibProArcadeGameName != null) {
+				return false;
+			}
+			if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
+				return true; //mochiads score is a GUI
+			}
+			return false;
 		}
 		
 		
