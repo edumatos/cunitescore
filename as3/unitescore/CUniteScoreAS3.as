@@ -71,7 +71,6 @@
 			{ domain:"kongregate.com", GUI:false } ,
 			{ domain:"pepere.org", GUI:false } ,
 			{ domain:"bubblebox.com", GUI:true } ,
-			{ domain:"ungrounded.net", GUI:false } ,
 			{ domain:"nonoba.com", GUI:false } ,
 			{ domain:"mindjolt.com", GUI:false } ,
 			{ domain:"games-garden.com", GUI:false }
