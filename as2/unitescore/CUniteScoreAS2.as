@@ -133,7 +133,9 @@ class unitescore.CUniteScoreAS2 {
 		category = category || mainScoreCategory;
 		
 		var lv:LoadVars;
-
+		
+		trace("CUniteScoreAS2 sendScore url=" + url);
+		
 		if (url.indexOf("nonoba.com") > -1) {
 			//nonoba.com
 			var nonoba_key:String;
@@ -204,8 +206,8 @@ class unitescore.CUniteScoreAS2 {
 					myLoader.loadClip(_root.bubbleboxApiPath+"?bubbleboxGameID="+_root.bubbleboxGameID, bubbleboxGUI);
 				}
 			}
-		} else if (url.indexOf("z-fox.com")) {
-			if (category == mainScoreCategory) _root.sendScor(score);
+		} else if (url.indexOf("z-fox.com") > -1) {
+			if (category == mainScoreCategory) _root.sendScore(score);
 		} else if ((url.indexOf("games-garden.com") > -1) && (_root.isUser == "1")) {
 			//games-garden.com (derived from ibProArcade system)
 			if (category == mainScoreCategory) {
