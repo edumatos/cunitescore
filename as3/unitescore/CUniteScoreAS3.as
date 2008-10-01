@@ -15,6 +15,7 @@
 	import flash.display.StageScaleMode;
 	import flash.utils.getTimer;
 	import flash.utils.getDefinitionByName;
+	import flash.utils.Timer;
 	import unitescore.mochi.*;
 	import unitescore.nonoba.*;
 	
@@ -27,7 +28,7 @@
 	public class CUniteScoreAS3 {
 		
 		/**
-		 * TextArea debug
+		 * TextArea debug. Before turning on this flag, get sure that you ahve a TextArea called "debug" on the root of your game swf.
 		 */
 		public var DEBUG:Boolean = false;
 		
@@ -99,6 +100,7 @@
 		private var sendLocalConnection:LocalConnection = new LocalConnection();
 		
 		public static var theroot:MovieClip;
+		private var initTimer:Timer;
 		private var mindJoltAPI:Object;
 		private var kongregateAPI:Object;
 		private var apiGUI:DisplayObject,apiGUIParams:Object;
@@ -117,8 +119,9 @@
 			if (urlDebug == null) url = theroot.stage.loaderInfo.url;
 			else url = urlDebug;
 			// get the parameters passed into the game
-			if (paramsDebug == null) gameParams = LoaderInfo(theroot.loaderInfo).parameters;
-			else gameParams = paramsDebug;
+			if (paramsDebug == null) {
+				gameParams = LoaderInfo(theroot.loaderInfo).parameters;
+			} else gameParams = paramsDebug;
 			// init local connection listener
 			sendLocalConnection.addEventListener(StatusEvent.STATUS, onConnStatus);
 			init();
@@ -187,9 +190,11 @@
 			if (url.indexOf("pepere.org") >= 0) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
 			} else if (url.indexOf("mindjolt.com") >= 0) {
+				if (!mindJoltAPI) return;
 				if (category == mainScoreCategory) mindJoltAPI.service.submitScore(score);
 				else mindJoltAPI.service.submitScore(score, category);
 			} else if (url.indexOf("kongregate.com") >= 0) {
+				if (!kongregateAPI) return;
 				if (category == mainScoreCategory) kongregateAPI.scores.submit(score);
 				else kongregateAPI.scores.submit(score, category);
 			} else if (url.indexOf("nonoba.com") >= 0) {
@@ -411,7 +416,19 @@
 			}
 		}
 		
-
+		/**
+		 * Try to get loaderIndo from the parent in case the fgame swf is already embedded (like in mochiads version control)
+		 */
+		private function topGameParams():void {
+			//Are we in a mochiads version control/encryption movieclip ?
+			if (DEBUG) theroot.debug.text += "topGameParams()\n";
+			try {
+				var topLoader:Object = (LoaderInfo(theroot.loaderInfo)).loader;
+				gameParams = LoaderInfo(topLoader.loaderInfo).parameters;
+			} catch (e:Error) {
+				if (DEBUG) theroot.debug.text += "topGameParams Error "+e+"\n";
+			}
+		}
 		
 		/**
 		 * Called by the constructor.
@@ -420,15 +437,39 @@
 			var loader:Loader = new Loader();
 			if (url.indexOf("mindjolt.com") >= 0) {
 				// manually load the API
+				if (!gameParams.mjPath) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
+				if (!gameParams.api_path) { delayedInit(); return; }
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, mindJoltComplete);
-				loader.load(new URLRequest(gameParams.mjPath || "http://static.mindjolt.com/api/as3/scoreapi_as3_local.swf"));
+				loader.load(new URLRequest(gameParams.mjPath));
 				theroot.addChild(loader);
 			} else if (url.indexOf("kongregate.com") >= 0) {
 				// The API path. The debug version ("shadow" API) will load if testing locally.
+				if (!gameParams.api_path) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
+				if (!gameParams.api_path) { delayedInit(); return; }
 				loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
-				loader.load ( new URLRequest( gameParams.api_path || "http://www.kongregate.com/flash/API_AS3_Local.swf") );
+				loader.load ( new URLRequest( gameParams.api_path ) );
 				theroot.addChild ( loader );
 			}
+		}
+		
+		/**
+		 * Postpone the init method
+		 */
+		private function delayedInit():void {
+			if (DEBUG) theroot.debug.text += "delayedInit()\n";
+			initTimer = new Timer(1000);
+			initTimer.addEventListener("timer", onDelayedInit);
+			initTimer.start();
+		}
+		
+		/**
+		 * Init timer ends
+		 */
+		private function onDelayedInit(ev:Event):void {
+			initTimer.stop();
+			initTimer.removeEventListener("timer", onDelayedInit);
+			initTimer = null;
+			init();
 		}
 		
 		/**
@@ -438,7 +479,7 @@
 		private function mindJoltComplete ( e:Event ):void {
 			mindJoltAPI=e.target.content;
 			mindJoltAPI.service.connect();
-			trace ("[MindJoltAPI] service manually loaded");
+			//trace ("[MindJoltAPI] service manually loaded");
 		}
 		
 		/**
@@ -446,11 +487,9 @@
 		 * @param	e
 		 */
 		private function kongregateComplete ( e:Event ):void {
-			// Save Kongregate API reference
-			kongregateAPI = e.target.content;
-			// Connect
-			kongregateAPI.services.connect();
-			trace ( "\n" + kongregateAPI.services + "\n" + kongregateAPI.user + "\n" + kongregateAPI.scores + "\n" + kongregateAPI.stats );
+			kongregateAPI = e.target.content; // Save Kongregate API reference
+			kongregateAPI.services.connect(); // Connect
+			//trace ( "\n" + kongregateAPI.services + "\n" + kongregateAPI.user + "\n" + kongregateAPI.scores + "\n" + kongregateAPI.stats );
 		}
 		
 		/**
