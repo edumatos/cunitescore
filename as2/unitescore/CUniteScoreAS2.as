@@ -25,6 +25,12 @@ import unitescore.nonoba.NonobaAPI;
 import unitescore.mochi.*;
 
 class unitescore.CUniteScoreAS2 {
+	
+	/**
+	 * TextArea debug. Before turning on this flag, get sure that you ahve a TextArea called "debug" on the root of your game swf.
+	 */
+	public var DEBUG:Boolean = false;
+	
 	/**
 	 * Common LocalConnection object
 	 */
@@ -59,9 +65,9 @@ class unitescore.CUniteScoreAS2 {
 	private var mochiadsGameID:String;
 	private var mochiadsBoardID:String;
 	/**
-	 * Bubblebox GUI object
+	 * Score GUI object (used for portals imlpementuing a GUI API)
 	 */
-	private var bubbleboxGUI:MovieClip;
+	private var scoreGUI:MovieClip;
 
 	
 	/**
@@ -78,12 +84,14 @@ class unitescore.CUniteScoreAS2 {
 		
 		//get the debug root parameters
 		if (paramsDebug) {
-			trace("paramsDebug, debug swf url parameters : ");
+			if (DEBUG) _root.debug.text += "CUniteScoreAS2 paramsDebug, debug swf url parameters : \n";
 			for ( var property in paramsDebug ) {
-				trace("property(" + property + ") = " + paramsDebug[property]);
+				if (DEBUG) _root.debug.text += "   property(" + property + ") = "+paramsDebug[property]+"\n";
 				_root[property] = paramsDebug[property];
 			}
 		}
+		
+		if (DEBUG) _root.debug.text += "CUniteScoreAS2 url=" + url + "\n";
 		
 		init();
 	}
@@ -145,6 +153,7 @@ class unitescore.CUniteScoreAS2 {
 			NonobaAPI.SubmitScore(nonoba_key, score, null);
 		} else if (url.indexOf("kongregate.com") > -1) {
 			//kongregate.com
+			if (DEBUG) _root.debug.text += "CUniteScoreAS2 _root.kongregateScores=" + _root.kongregateScores + "\n";
 			_root.kongregateScores.setMode(category);
 			_root.kongregateScores.submit(score);
 		} else if (url.indexOf("surpassarcade.com") > -1) {
@@ -166,6 +175,7 @@ class unitescore.CUniteScoreAS2 {
 			_root.HPScoreService.postScore(score, category);
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			//gamegarage.co.uk
+			/* Old way, for members only and without GUI, never tested
 			if ((_root.game_id != undefined) && (_root.user_id != undefined)) {
 				if (category == mainScoreCategory) {
 					var lv:LoadVars = new LoadVars();
@@ -174,6 +184,18 @@ class unitescore.CUniteScoreAS2 {
 					lv.score = score;
 					lv.alg = _root.game_id + _root.user_id + score + "a83l9xj";
 					lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/score.php", lv, "POST");
+				}
+			}
+			*/
+			if ((_root.gamegarageApiPath != undefined) && (_root.game_id != undefined) && (category == mainScoreCategory)) {
+				_root.unitescorePendingScore = score; // to be used once the bubblebox component is loaded
+				_root.unitescoreSendScoreMethod = gamegarageSendScore;
+				if (scoreGUI != undefined) {
+					gamegarageSendScore();
+				} else {
+					var useridVar:String="";
+					if (_root.user_id != undefined) useridVar="&user_id="+_root.user_id;
+					loadScoreGUI(_root.gamegarageApiPath + "?game_id=" + _root.game_id + useridVar, 550, 400, scoreGUIComplete);
 				}
 			}
 		} else if (url.indexOf("pepere.org") > -1) {
@@ -185,25 +207,15 @@ class unitescore.CUniteScoreAS2 {
 					fscommand("saveGlobalScore", score + "");
 				}
 			}
-		} else if (url.indexOf("bubblebox.com") > -1) {
+		} else if ((_root.bubbleboxApiPath != undefined) && (_root.bubbleboxGameID!=undefined) && (url.indexOf("bubblebox.com") > -1)) {
 			//bubblebox.com
 			if (category == mainScoreCategory) {
-				_root.bubbleboxPendingScore = score; // to be used once the bubblebox component is loaded
-				if (bubbleboxGUI != undefined) {
-					showBubbleboxScoreGUI();
+				_root.unitescorePendingScore = score; // to be used once the bubblebox component is loaded
+				_root.unitescoreSendScoreMethod = bubbleboxSendScore;
+				if (scoreGUI != undefined) {
+					bubbleboxSendScore();
 				} else {
-					bubbleboxGUI = _root.createEmptyMovieClip("bubbleboxgui_mc", 10336);
-					bubbleboxGUI._x = Stage.width/2 - 200;
-					bubbleboxGUI._y = Stage.height/2 - 100;
-					
-					var myLoader:MovieClipLoader = new MovieClipLoader();
-					var myListener:Object = new Object();					
-					myListener.onLoadError = function (target_mc:MovieClip, errorCode:String) { trace("load error " + errorCode); };
-					//myListener.onLoadStart = function () { trace("load start"); }; myListener.onLoadProgress = function () { trace("load progress"); };
-					myListener.onLoadInit = bubbleboxComplete;
-					
-					myLoader.addListener(myListener);
-					myLoader.loadClip(_root.bubbleboxApiPath+"?bubbleboxGameID="+_root.bubbleboxGameID, bubbleboxGUI);
+					loadScoreGUI(_root.bubbleboxApiPath + "?bubbleboxGameID=" + _root.bubbleboxGameID, 400, 200, scoreGUIComplete);
 				}
 			}
 		} else if (url.indexOf("z-fox.com") > -1) {
@@ -234,14 +246,34 @@ class unitescore.CUniteScoreAS2 {
 	/**
 	 * init method called by the constructor
 	 */
+	private function loadScoreGUI(apiPath:String, w:Number, h:Number, completeCallback:Function):Void {
+		scoreGUI = _root.createEmptyMovieClip("scoreGUI_mc", 10336);
+		scoreGUI._x = Stage.width/2 - w/2;
+		scoreGUI._y = Stage.height/2 - h/2;
+		
+		var myLoader:MovieClipLoader = new MovieClipLoader();
+		var myListener:Object = new Object();					
+		myListener.onLoadError = function (target_mc:MovieClip, errorCode:String) { trace("load error " + errorCode); };
+		//myListener.onLoadStart = function () { trace("load start"); }; myListener.onLoadProgress = function () { trace("load progress"); };
+		myListener.onLoadInit = completeCallback;
+		
+		myLoader.addListener(myListener);
+		myLoader.loadClip(apiPath, scoreGUI);
+	}
+	
+	
+	/**
+	 * init method called by the constructor
+	 */
 	private function init():Void {
 		sendLocalConnection = new LocalConnection();
 		sendLocalConnection.onStatus = function (info:Object):Void { trace("localConnection " + info.level+" "+info); };
 		
 		if (url.indexOf("kongregate.com") > -1) {
 			// Kongregate.com init
+			if (DEBUG) _root.debug.text += "CUniteScoreAS2 _root.kongregateServices=" + _root.kongregateServices + "\n";
 			_root.kongregateServices.connect();
-			_root.debug.text += "\n_root.kongregateServices.connect()";
+			if (DEBUG) _root.debug.text += "\nCUniteScoreAS2 _root.kongregateServices.connect()\n";
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			// Gamegarage.co.uk init (tracking code)
 			if (_root.game_id != undefined && _root.user_id != undefined) {
@@ -254,23 +286,31 @@ class unitescore.CUniteScoreAS2 {
 	}
 	
 	/**
-	 * Bubblebox GUI Movieclip loaded
+	 * Score GUI Movieclip loaded
 	 * @param	target_mc
 	 */
-	private function bubbleboxComplete(target_mc:MovieClip) : Void {
+	private function scoreGUIComplete(target_mc:MovieClip) : Void {
 		this = _root._cuniscoreContext;
-		trace("bubbleboxComplete(" + target_mc + ") _root.bubbleboxGameID=" + _root.bubbleboxGameID + " _root.bubbleboxPendingScore=" + _root.bubbleboxPendingScore);
+		trace("scoreGUIComplete(" + target_mc + ") _root.unitescoreSendScoreMethodD=" + _root.unitescoreSendScoreMethod + " _root.unitescorePendingScore=" + _root.unitescorePendingScore);
 		//must wait a few milliseconds before using local connection
-		interval = setInterval(showBubbleboxScoreGUI , 500);
+		interval = setInterval(_root.unitescoreSendScoreMethod , 500);
 	}
 	
 	/**
-	 * Send the score to bubblebox GUI
+	 * Send score to bubblebox GUI
 	 */
-	private function showBubbleboxScoreGUI():Void {
+	private function bubbleboxSendScore():Void {
 		this = _root._cuniscoreContext;
 		clearInterval(interval);
-		trace("showBubbleboxScoreGUI");
-		sendLocalConnection.send("bubbleboxRcvApi" + _root.bubbleboxGameID, "sendScore", _root.bubbleboxPendingScore);
+		sendLocalConnection.send("bubbleboxRcvApi" + _root.bubbleboxGameID, "sendScore", _root.unitescorePendingScore);
+	}
+	
+	/**
+	 * Send score to gamegarage GUI
+	 */
+	private function gamegarageSendScore():Void {
+		this = _root._cuniscoreContext;
+		clearInterval(interval);
+		sendLocalConnection.send("gamegarageRcvApi" + _root.game_id, "sendScore", _root.unitescorePendingScore);
 	}
 }
