@@ -71,6 +71,7 @@
 			{ domain:"kongregate.com", GUI:false } ,
 			{ domain:"pepere.org", GUI:false } ,
 			{ domain:"bubblebox.com", GUI:true } ,
+			{ domain:"gamegarage.co.uk", GUI:true } ,
 			{ domain:"nonoba.com", GUI:false } ,
 			{ domain:"mindjolt.com", GUI:false } ,
 			{ domain:"games-garden.com", GUI:false }
@@ -100,7 +101,7 @@
 		public static var theroot:MovieClip;
 		private var mindJoltAPI:Object;
 		private var kongregateAPI:Object;
-		private var bubbleboxGUI:DisplayObject;
+		private var apiGUI:DisplayObject,apiGUIParams:Object;
 		private var pendingScore:int;
 		private var url:String;
 		private var gameParams:Object; //parameters of the swf url (game.swf?myvar1=XXX&myvar2=YYY)
@@ -209,21 +210,39 @@
 				});
 			} else if (url.indexOf("bubblebox.com") >= 0) {
 				if (category == mainScoreCategory) {
-					if (bubbleboxGUI != null) showBubbleboxScoreGUI(score);
-					else {
-						pendingScore = score; // to be used once the bubblebox component is loaded
-						loader = new Loader();
-						loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, bubbleboxComplete );
+					if (apiGUI != null) {
+						showScoreGUI();
+						try {
+							sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore);
+						} catch (error:ArgumentError) {
+						}
+					} else {
 						trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
-						urlRequest = new URLRequest( gameParams.bubbleboxApiPath);
+						apiGUIParams = { w:400, h:200 }; //size of the GUI
+						pendingScore = score; // to be used once the bubblebox component is loaded
 						urlVars = new URLVariables();
 						urlVars.bubbleboxGameID = gameParams.bubbleboxGameID;
-						urlRequest.method = URLRequestMethod.GET;
-						urlRequest.data = urlVars;
 						
-						loader.load ( urlRequest );
+						loadScoreGUI(gameParams.bubbleboxApiPath, urlVars, bubbleboxComplete);
+					}
+				}
+			} else if (url.indexOf("gamegarage.co.uk") >= 0) {
+				if (category == mainScoreCategory) {
+					if (apiGUI != null) {
+						showScoreGUI();
+						try {
+							sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore);
+						} catch (error:ArgumentError) {
+						}
+					} else {
+						trace("gameParams.gamegarageApiPath=" + gameParams.gamegarageApiPath + " gameParams.game_id=" + gameParams.game_id+ " gameParams.user_id=" + gameParams.user_id);
+						apiGUIParams = { w:550, h:400 }; //size of the GUI
+						pendingScore = score; // to be used once the gamegarage component is loaded
+						urlVars = new URLVariables();
+						urlVars.game_id = gameParams.game_id;
+						if (gameParams.user_id) urlVars.user_id = gameParams.user_id;
 						
-						bubbleboxGUI = loader;
+						loadScoreGUI(gameParams.gamegarageApiPath, urlVars, gamegarageComplete);
 					}
 				}
 			} else if (url.indexOf("games-garden.com") > -1) {
@@ -440,31 +459,66 @@
 		 */
 		private function bubbleboxComplete ( e:Event ):void {
 			trace ("[bubblebox API] bubbleboxComplete");
-			//bubbleboxGUI = e.currentTarget;
-			showBubbleboxScoreGUI(pendingScore);
+			//apiGUI = e.currentTarget;
+			showScoreGUI();
+			
+			try {
+				sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore);
+			} catch (error:ArgumentError) {
+			}
 		}
 		
 		/**
-		 * Show the bubblebox username input for score submittion
-		 * @param	score
+		 * Gamegarage component loaded
+		 * @param	e
 		 */
-		private function showBubbleboxScoreGUI ( score:int ):void {
-			trace ("[bubblebox API] showBubbleboxScoreGUI");
+		private function gamegarageComplete ( e:Event ):void {
+			trace ("[gamegarage API] gamegarageComplete");
+			//apiGUI = e.currentTarget;
+			showScoreGUI();
+			
+			try {
+				sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore);
+			} catch (error:ArgumentError) {
+			}
+		}
+		
+		
+		
+		/**
+		 * Load the score GUI (for portals that use a GUI to submit the score)
+		 * @param	apiPath
+		 * @param	urlVars
+		 * @param	completeCallback
+		 */
+		private function loadScoreGUI(apiPath:String, urlVars:URLVariables, completeCallback:Function):void {
+			var loader:Loader = new Loader();
+			loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, completeCallback );
+			trace("loadScoreGUI apiPath=" + apiPath);
+			var urlRequest:URLRequest = new URLRequest( apiPath);
+			urlRequest.method = URLRequestMethod.GET;
+			urlRequest.data = urlVars;
+			
+			loader.load ( urlRequest );
+			
+			apiGUI = loader;
+		}
+		
+		/**
+		 * Show the score submittion GUI
+		 */
+		private function showScoreGUI ( ):void {
+			trace ("[score GUI API] showScoreGUI");
 			//Keep the GUI on TOP
 			//TODO check the GUI is on top on every frame
 			try {
-				theroot.removeChild(bubbleboxGUI);
+				theroot.removeChild(apiGUI);
 			} catch (e:Error) {
 			}
-			theroot.addChild(bubbleboxGUI);
+			theroot.addChild(apiGUI);
 			
-			bubbleboxGUI.x = theroot.loaderInfo.width/2 - 200;
-			bubbleboxGUI.y = theroot.loaderInfo.height/2 - 100;
-			
-			try {
-				sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", score);
-			} catch (error:ArgumentError) {
-			}
+			apiGUI.x = theroot.loaderInfo.width/2 - apiGUIParams.w/2;
+			apiGUI.y = theroot.loaderInfo.height/2 - apiGUIParams.h/2;
 		}
 		
 		private function onConnStatus(event:StatusEvent):void {
