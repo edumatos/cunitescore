@@ -62,6 +62,8 @@
 			{ mcclass:"MCmindjolt", domain:"mindjolt.com" } ,
 			{ mcclass:"MCaddictinggames", domain:"addictinggames.com" } ,
 			{ mcclass:"MCgamesgarden", domain:"games-garden.com" } ,
+			{ mcclass:"MCgamegarage", domain:"gamegarage.co.uk" } ,
+			{ mcclass:"MCgameshot", domain:"gameshot.org" } ,
 			{ mcclass:"MConemorelevel", domain:"onemorelevel.com" }
 		];
 		
