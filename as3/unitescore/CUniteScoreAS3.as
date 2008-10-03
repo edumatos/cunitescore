@@ -8,6 +8,7 @@
 	import flash.net.LocalConnection;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
+	import flash.net.navigateToURL;
 	import flash.events.Event;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
@@ -77,7 +78,7 @@
 			{ domain:"gamegarage.co.uk", GUI:true } ,
 			{ domain:"nonoba.com", GUI:false } ,
 			{ domain:"mindjolt.com", GUI:false } ,
-			{ domain:"games-garden.com", GUI:false }
+			{ domain:"games-garden.com", GUI:true } //not really powered by GUI, but a score submission is reloading the page
 		];
 		
 		/**
@@ -265,8 +266,11 @@
 					
 					urlRequest.method = URLRequestMethod.POST;
 					urlRequest.data = urlVars;
+					/*
 					urlLoader = new URLLoader();
 					urlLoader.load(urlRequest);
+					*/
+					navigateToURL(urlRequest, "_self");
 				}
 			} else if (ibProArcadeGameName != null) {
 				urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
@@ -275,8 +279,11 @@
 				urlVars.gscore = score;
 				urlRequest.method = URLRequestMethod.POST;
 				urlRequest.data = urlVars;
+				/*
 				urlLoader = new URLLoader();
 				urlLoader.load(urlRequest);
+				*/
+				navigateToURL(urlRequest, "_self");
 				
 				if (DEBUG) theroot.debug.text += "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n";
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
@@ -346,7 +353,7 @@
 				if (url.indexOf(scoreParams[i].domain) >= 0) return scoreParams[i].GUI;
 			}
 			if (ibProArcadeGameName != null) {
-				return false;
+				return true; //not really powered by GUI, but a score submission is reloading the page
 			}
 			if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				return true; //mochiads score is a GUI
