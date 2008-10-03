@@ -224,7 +224,7 @@
 						} catch (error:ArgumentError) {
 						}
 					} else {
-						trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
+						//trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
 						apiGUIParams = { w:400, h:200 }; //size of the GUI
 						pendingScore = score; // to be used once the bubblebox component is loaded
 						urlVars = new URLVariables();
@@ -255,10 +255,14 @@
 			} else if (url.indexOf("games-garden.com") > -1) {
 				//games-garden.com (derived from ibProArcade system)
 				if ((gameParams.isUser == 1) && (gameParams.gname)) {
-					urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
+					//urlRequest = new URLRequest("http://localhost:8080/cunitescore/index.php?act=Arcade&do=newscore"); //for local testings
+					urlRequest = new URLRequest("http://www.games-garden.com/index.php?act=Arcade&do=newscore");
 					urlVars = new URLVariables();
 					urlVars.gname = gameParams.gname;
 					urlVars.gscore = score;
+					
+					if (DEBUG) theroot.debug.text += "http://www.games-garden.com/index.php?act=Arcade&do=newscore POST gname=" + urlVars.gname + " gscore=" + urlVars.gscore + "\n";
+					
 					urlRequest.method = URLRequestMethod.POST;
 					urlRequest.data = urlVars;
 					urlLoader = new URLLoader();
