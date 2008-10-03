@@ -229,10 +229,15 @@ class unitescore.CUniteScoreAS2 {
 		} else if (ibProArcadeGameName != undefined) {
 			//ibProArcade compatible site
 			if (category == mainScoreCategory) {
+				/*
 				lv = new LoadVars();
 				lv.gname = ibProArcadeGameName;
 				lv.gscore = score;
 				lv.sendAndLoad("index.php?act=Arcade&do=newscore", lv, "POST");
+				*/
+				_root.gname = ibProArcadeGameName;
+				_root.gscore = score;
+				getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
 			}
 		} else if ((mochiadsGameID != undefined) && (mochiadsBoardID != undefined)) {
 			if (category == mainScoreCategory) MochiScores.showLeaderboard( {boardID : mochiadsBoardID, score : score} );
