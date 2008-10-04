@@ -65,6 +65,9 @@
 			{ mcclass:"MCgamesgarden", domain:"games-garden.com" } ,
 			{ mcclass:"MCgamegarage", domain:"gamegarage.co.uk" } ,
 			{ mcclass:"MCgameshot", domain:"gameshot.org" } ,
+			{ mcclass:"MCgamebrew", domain:"gamebrew.com" } ,
+			{ mcclass:"MCminijuegos", domain:"72.36.157." } ,
+			{ mcclass:"MCminijuegos", domain:"72.232." } ,
 			{ mcclass:"MConemorelevel", domain:"onemorelevel.com" }
 		];
 		
@@ -78,6 +81,7 @@
 			{ domain:"gamegarage.co.uk", GUI:true } ,
 			{ domain:"nonoba.com", GUI:false } ,
 			{ domain:"mindjolt.com", GUI:false } ,
+			{ domain:"gamebrew.com", GUI:false } ,
 			{ domain:"games-garden.com", GUI:true } //not really powered by GUI, but a score submission is reloading the page
 		];
 		
@@ -216,6 +220,13 @@
 						case NonobaAPI.ERROR: { trace("A Nonoba error occurred."); break; }
 					}
 				});
+			} else if (url.indexOf("gamebrew.com") >= 0) {
+				if (category == mainScoreCategory) {
+					try {
+						sendLocalConnection.send("gbapi", "scoreSubmit", score);
+					} catch (error:ArgumentError) {
+					}
+				}
 			} else if (url.indexOf("bubblebox.com") >= 0) {
 				if (category == mainScoreCategory) {
 					if (apiGUI != null) {
