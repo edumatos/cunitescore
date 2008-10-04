@@ -170,6 +170,8 @@ class unitescore.CUniteScoreAS2 {
 			} else {
 				sendLocalConnection.send(_root.com_mindjolt_api, "submitScore", score, category);
 			}
+		} else if (url.indexOf("gamebrew.com") >= 0) {
+			if (category == mainScoreCategory) sendLocalConnection.send("gbapi","scoreSubmit",score);
 		} else if (url.indexOf("hallpass.com") > -1) {
 			//hallpass.com
 			_root.HPScoreService.postScore(score, category);
