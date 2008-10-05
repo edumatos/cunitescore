@@ -264,9 +264,9 @@
 						loadScoreGUI(gameParams.gamegarageApiPath, urlVars, gamegarageComplete);
 					}
 				}
-			} else if (url.indexOf("games-garden.com") > -1) {
+			} else if ( (url.indexOf("games-garden.com") > -1) && (gameParams.isUser == "1") && (gameParams.gname) ) {
 				//games-garden.com (derived from ibProArcade system)
-				if ((gameParams.isUser == 1) && (gameParams.gname)) {
+				if (category == mainScoreCategory) {
 					//urlRequest = new URLRequest("http://localhost:8080/cunitescore/index.php?act=Arcade&do=newscore"); //for local testings
 					urlRequest = new URLRequest("http://www.games-garden.com/index.php?act=Arcade&do=newscore");
 					urlVars = new URLVariables();
@@ -473,7 +473,7 @@
 				loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
 				loader.load ( new URLRequest( gameParams.api_path ) );
 				theroot.addChild ( loader );
-			}
+			} 
 		}
 		
 		/**
