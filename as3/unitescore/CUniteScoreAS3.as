@@ -75,14 +75,14 @@
 		 * Score parameters by domain
 		 */
 		private var scoreParams:Array = [ 
-			{ domain:"kongregate.com", GUI:false } ,
-			{ domain:"pepere.org", GUI:false } ,
-			{ domain:"bubblebox.com", GUI:true } ,
-			{ domain:"gamegarage.co.uk", GUI:true } ,
-			{ domain:"nonoba.com", GUI:false } ,
-			{ domain:"mindjolt.com", GUI:false } ,
-			{ domain:"gamebrew.com", GUI:false } ,
-			{ domain:"games-garden.com", GUI:true } //not really powered by GUI, but a score submission is reloading the page
+			{ domain:"kongregate.com", GUI:false, needUrlVars:["api_path"] } ,
+			{ domain:"pepere.org", GUI:false, needUrlVars:[] } ,
+			{ domain:"bubblebox.com", GUI:true, needUrlVars:["bubbleboxGameID","bubbleboxApiPath"] } ,
+			{ domain:"gamegarage.co.uk", GUI:true, needUrlVars:["game_id","gamegarageApiPath"] } ,
+			{ domain:"nonoba.com", GUI:false, needUrlVars:[] } ,
+			{ domain:"mindjolt.com", GUI:false, needUrlVars:["mjPath"] } ,
+			{ domain:"gamebrew.com", GUI:false, needUrlVars:[] } ,
+			{ domain:"games-garden.com", GUI:true, needUrlVars:["isUser","gname"] } //not really powered by GUI, but a score submission is reloading the page
 		];
 		
 		/**
@@ -454,26 +454,43 @@
 			}
 		}
 		
+		
 		/**
 		 * Called by the constructor.
 		 */
 		private function init():void {
 			var loader:Loader = new Loader();
+			
+			//Top container management (mochiads version control)
+			for (var i:int = 0; i < scoreParams.length;i++) {
+				if (url.indexOf(scoreParams[i].domain) >= 0) {
+					if ( scoreParams[i].needUrlVars.length > 0 ) {
+						for (var j:int = 0; j < scoreParams[i].needUrlVars.length; j++) {
+							if (gameParams[scoreParams[i].needUrlVars[j]] == null) {
+								topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
+								if (gameParams[scoreParams[i].needUrlVars[j]] == null) { delayedInit(); return; }
+							}
+						}
+					}
+					break;
+				}
+			}
+			
 			if (url.indexOf("mindjolt.com") >= 0) {
 				// manually load the API
-				if (!gameParams.mjPath) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
-				if (!gameParams.api_path) { delayedInit(); return; }
+				//if (!gameParams.mjPath) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
+				//if (!gameParams.mjPath) { delayedInit(); return; }
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, mindJoltComplete);
 				loader.load(new URLRequest(gameParams.mjPath));
 				theroot.addChild(loader);
 			} else if (url.indexOf("kongregate.com") >= 0) {
 				// The API path. The debug version ("shadow" API) will load if testing locally.
-				if (!gameParams.api_path) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
-				if (!gameParams.api_path) { delayedInit(); return; }
+				//if (!gameParams.api_path) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
+				//if (!gameParams.api_path) { delayedInit(); return; }
 				loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
 				loader.load ( new URLRequest( gameParams.api_path ) );
 				theroot.addChild ( loader );
-			} 
+			}
 		}
 		
 		/**
