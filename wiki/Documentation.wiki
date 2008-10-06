@@ -5,7 +5,7 @@
 
 First you have to get the latest [sources sources].
 
-= Actionscript 3 =
+= Actionscript 2 =
 
 Then you have to copy/include the AS2 package in your project. You can either copy the folder {{{unitescore}}} from the {{{as2}}} directory into your project root directory or add the {{{as2}}} directory in your classpath.
 
