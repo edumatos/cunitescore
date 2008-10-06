@@ -1,4 +1,4 @@
-#summary How do i get the sources ?
+#summary How do I get the sources ?
 
 = SVN =
 
