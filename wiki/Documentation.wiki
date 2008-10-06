@@ -3,15 +3,15 @@
 
 = Introduction =
 
-= Actionscript 2 =
+First you have to get the latest [sources sources].
 
-First of all you would need to checkout the AS2 version of *unitescore* from the [http://code.google.com/p/cunitescore/source/checkout Source page] to your project folder.
-Be sure you checkout only the AS2 version, ie:
-https://cunitescore.googlecode.com/svn/trunk/as2/unitescore
+= Actionscript 3 =
 
-== Basic use (timeline) ==
+Then you have to copy/include the AS2 package in your project. You can either copy the folder {{{unitescore}}} from the {{{as2}}} directory into your project root directory or add the {{{as2}}} directory in your classpath.
 
-If your code is mainly in the timeline, then, in the first frame of your movie import the class and create an instance of it:
+== Basic use ==
+
+In the first frame of your movie import the class and create an instance of it :
 {{{
 import unitescore.CUniteScoreAS2;
 
@@ -24,36 +24,6 @@ scoreSubmitter.initMochiAdsLeaderboard("xxx", "yyy");
 where *"xxx"* is your game mochiad ID and *"yyy"* is your leaderboard ID.
 
 In game over, either when submitting through a button or in the last frame:
-{{{
-scoreSubmitter.sendScore(score);
-}}}
-where *score* is the variable name of your game score.
-
-You're done!
-Just adding those lines of code your game will post scores to the different portals listed on the [http://code.google.com/p/cunitescore/ Project Homepage].
-
-
-== Basic use (classes) ==
-
-If you are using classes and your main code is in a class, then, on top of the code from your main class import the CUniteScoreAS2 class:
-{{{
-import unitescore.CUniteScoreAS2;
-}}}
-In the class code create a private property:
-{{{
-private var scoreSubmitter : CUniteScoreAS2;
-}}}
-In the constructor or any other initialization method, instantiate the class:
-{{{
-scoreSubmitter = new CUniteScoreAS2();
-}}}
-you can as well instantiate the mochiads leaderboard in the same method:
-{{{
-scoreSubmitter.initMochiAdsLeaderboard("xxx", "yyy");
-}}}
-where *"xxx"* is your game mochiad ID and *"yyy"* is your leaderboard ID.
-
-In game over, either when submitting through a button or in a specific method:
 {{{
 scoreSubmitter.sendScore(score);
 }}}
