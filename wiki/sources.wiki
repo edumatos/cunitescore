@@ -1,0 +1,16 @@
+#summary How do i get the sources ?
+
+= SVN =
+
+You can get the sources by checking out the latest version from [http://en.wikipedia.org/wiki/Subversion_(software) SVN].
+
+If you don't have a SVN client already installed, we recommend [http://tortoisesvn.tigris.org/ tortoise SVN] for Windows. Here is a [http://subversion.tigris.org/links.html#all-clients list of SVN clients].
+
+Once your client is installed, create a {{{unitescore}}} folder on your computer, and check out the latest sources over http : http://cunitescore.googlecode.com/svn/trunk/
+
+If you never used a SVN client, you can gave a look at this [http://docs.google.com/View?docid=dczs397v_12ftrscdd9 SVN checkout tutorial] that has been done for another google code project.
+
+
+= Download =
+
+A download package will be provided when the project is more stable.
