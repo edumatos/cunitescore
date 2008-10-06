@@ -1,4 +1,4 @@
-#summary How to use these classes.
+#summary How to use AS2 classes.
 #labels Phase-Implementation
 
 = Introduction =
