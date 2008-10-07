@@ -13,4 +13,5 @@ If you never used a SVN client, you can gave a look at this [http://docs.google.
 
 = Download =
 
-A download package will be provided when the project is more stable.
+You can also download an archinve with all the sources. The download packages are updated quite often but you will not always get the latest sources.
+[http://code.google.com/p/cunitescore/downloads/list Downloads]
