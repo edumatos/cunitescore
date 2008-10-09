@@ -70,7 +70,7 @@
 			{ mcclass:"MCminijuegos", domain:"72.232." } ,
 			{ mcclass:"MConemorelevel", domain:"onemorelevel.com" }
 		];
-		
+
 		/**
 		 * Score parameters by domain
 		 */
@@ -81,6 +81,8 @@
 			{ domain:"gamegarage.co.uk", GUI:true, needUrlVars:["game_id","gamegarageApiPath"] } ,
 			{ domain:"nonoba.com", GUI:false, needUrlVars:[] } ,
 			{ domain:"mindjolt.com", GUI:false, needUrlVars:["mjPath"] } ,
+			{ domain:"gr8games.eu", GUI:false, needUrlVars:["gr8games_api"] } ,
+			{ domain:"e-gierki.com", GUI:false, needUrlVars:["gr8games_api"] } ,
 			{ domain:"gamebrew.com", GUI:false, needUrlVars:[] } ,
 			{ domain:"games-garden.com", GUI:true, needUrlVars:["isUser","gname"] } //not really powered by GUI, but a score submission is reloading the page
 		];
@@ -222,19 +224,19 @@
 				});
 			} else if (url.indexOf("gamebrew.com") >= 0) {
 				if (category == mainScoreCategory) {
-					try {
-						sendLocalConnection.send("gbapi", "scoreSubmit", score);
-					} catch (error:ArgumentError) {
-					}
+					try {sendLocalConnection.send("gbapi", "scoreSubmit", score); } catch (error:ArgumentError) {}
+				}
+			} else if ( (url.indexOf("gr8games.eu") >= 0) || (url.indexOf("e-gierki.com") >= 0) ) {
+				if (category == mainScoreCategory) {
+					try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score); } catch (error:ArgumentError) {}
+				} else {
+					try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score, category); } catch (error:ArgumentError) {}
 				}
 			} else if (url.indexOf("bubblebox.com") >= 0) {
 				if (category == mainScoreCategory) {
 					if (apiGUI != null) {
 						showScoreGUI();
-						try {
-							sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore);
-						} catch (error:ArgumentError) {
-						}
+						try { sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore); } catch (error:ArgumentError) {}
 					} else {
 						//trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
 						apiGUIParams = { w:400, h:200 }; //size of the GUI
@@ -249,10 +251,7 @@
 				if (category == mainScoreCategory) {
 					if (apiGUI != null) {
 						showScoreGUI();
-						try {
-							sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore);
-						} catch (error:ArgumentError) {
-						}
+						try { sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore); } catch (error:ArgumentError) {}
 					} else {
 						trace("gameParams.gamegarageApiPath=" + gameParams.gamegarageApiPath + " gameParams.game_id=" + gameParams.game_id+ " gameParams.user_id=" + gameParams.user_id);
 						apiGUIParams = { w:550, h:400 }; //size of the GUI
@@ -542,10 +541,7 @@
 			//apiGUI = e.currentTarget;
 			showScoreGUI();
 			
-			try {
-				sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore);
-			} catch (error:ArgumentError) {
-			}
+			try { sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore); } catch (error:ArgumentError) {}
 		}
 		
 		/**
@@ -557,10 +553,7 @@
 			//apiGUI = e.currentTarget;
 			showScoreGUI();
 			
-			try {
-				sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore);
-			} catch (error:ArgumentError) {
-			}
+			try { sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore); } catch (error:ArgumentError) {}
 		}
 		
 		
