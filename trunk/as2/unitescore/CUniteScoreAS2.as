@@ -209,6 +209,13 @@ class unitescore.CUniteScoreAS2 {
 					fscommand("saveGlobalScore", score + "");
 				}
 			}
+		} else if ( (url.indexOf("gr8games.eu") >= 0) || (url.indexOf("e-gierki.com") >= 0) ) {
+			//gr8games games
+			if (category == mainScoreCategory) {
+				sendLocalConnection.send(_root.gr8games_api,"scoreSubmit",score);
+			} else {
+				sendLocalConnection.send(_root.gr8games_api,"scoreSubmit",score,category);
+			}
 		} else if ((_root.bubbleboxApiPath != undefined) && (_root.bubbleboxGameID!=undefined) && (url.indexOf("bubblebox.com") > -1)) {
 			//bubblebox.com
 			if (category == mainScoreCategory) {
