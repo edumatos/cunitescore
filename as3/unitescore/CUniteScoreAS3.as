@@ -95,6 +95,7 @@ package unitescore {
 		private var scoreParams:Array = [ 
 			{ domain:"kongregate.com", GUI:false, needUrlVars:["api_path"] } ,
 			{ domain:"pepere.org", GUI:false, needUrlVars:[] } ,
+			{ domain:"jeuxgratuits.net", GUI:false, needUrlVars:[] } ,
 			{ domain:"bubblebox.com", GUI:true, needUrlVars:["bubbleboxGameID","bubbleboxApiPath"] } ,
 			{ domain:"gamegarage.co.uk", GUI:true, needUrlVars:["game_id","gamegarageApiPath"] } ,
 			{ domain:"nonoba.com", GUI:false, needUrlVars:[] } ,
@@ -219,6 +220,8 @@ package unitescore {
 
 			if (url.indexOf("pepere.org") >= 0) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
+			} else if (url.indexOf("jeuxgratuits.net") >= 0) {
+				ExternalInterface.call("flashScoreService", score, category);
 			} else if (url.indexOf("mindjolt.com") >= 0) {
 				if (!mindJoltAPI) return;
 				if (category == mainScoreCategory) mindJoltAPI.service.submitScore(score);

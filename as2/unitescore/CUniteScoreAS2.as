@@ -204,14 +204,11 @@ class unitescore.CUniteScoreAS2 {
 			}
 		} else if (url.indexOf("pepere.org") > -1) {
 			//pepere.org
-			if (category == mainScoreCategory) {
-				if (ExternalInterface.available) {
-					ExternalInterface.call("saveGlobalScore", score);
-				} else {
-					fscommand("saveGlobalScore", score + "");
-				}
-			}
-		} else if ( (url.indexOf("gr8games.eu") >= 0) || (url.indexOf("e-gierki.com") >= 0) ) {
+			if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
+		} else if (url.indexOf("jeuxgratuits.net") > -1) {
+			//jeuxgratuits.net
+			ExternalInterface.call("flashScoreService", score, category);
+		} else if ( (url.indexOf("gr8games.eu") > -1) || (url.indexOf("e-gierki.com") > -1) ) {
 			//gr8games games
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.gr8games_api=" + _root.gr8games_api + "\n";
 			if (category == mainScoreCategory) {
