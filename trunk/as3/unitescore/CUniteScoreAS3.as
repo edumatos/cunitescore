@@ -1,4 +1,26 @@
-﻿package unitescore { 
+﻿/**
+ * CUnisScoreAS3.as
+ * AS3 submition score on major game portals
+ * From an original idea by Badim (badim.ru)
+ *
+ * *************************
+ * Basic use :
+ * *************************
+ * 
+ * //In root Frame 1 :
+ * import unitescore.*;
+ * var scoreSubmitter:CUniteScoreAS3 = new CUniteScoreAS3(this);
+ * 
+ * //Optional init, XXX = mochiadID, YYY = boardID, ZZZ = game name.
+ * scoreSubmitter.initMochiAdsLeaderboard("XXX","YYY");
+ * scoreSubmitter.initIbProArcade("ZZZ");
+ * 
+ * //In game over :
+ * scoreSubmitter.sendScore(myScoreVar);
+ * 
+ */
+
+package unitescore { 
 	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
 	import flash.events.StatusEvent;
@@ -14,24 +36,20 @@
 	import flash.net.URLVariables;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.text.TextField;
 	import flash.utils.getTimer;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.Timer;
 	import unitescore.mochi.*;
 	import unitescore.nonoba.*;
+
 	
-	
-	/**
-	 * Use in the first frame of your game root MovieClip:
-	 * import unitescore.*;
-	 * var scoreSubmitter:CUniteScoreAS3 = new CUniteScoreAS3(this);
-	 */
 	public class CUniteScoreAS3 {
 		
 		/**
-		 * TextArea debug. Before turning on this flag, get sure that you ahve a TextArea called "debug" on the root of your game swf.
+		 * Debug TextField.
 		 */
-		public var DEBUG:Boolean = false;
+		public var DEBUGFIELD:TextField;
 		
 		/**
 		 * Logo layouts
@@ -119,10 +137,13 @@
 
 		/**
 		 * Constructor
-		 * @param	theroot : root Movieclip
+		 * @param	root : root Movieclip
+		 * @param	debugField : Debug TextField to toggle on the debug traces. null to not output the traces.
 		 * @param	urlDebug : To simulate a swf hosting url. Exple "kongregate.com".
+		 * @param	paramsDebug : To simulate a list of url parameters (flash vars) passed to the game swf.
 		 */
-		function CUniteScoreAS3(root:MovieClip,urlDebug:String=null,paramsDebug:Object=null) {
+		function CUniteScoreAS3(root:MovieClip, debugField:TextField = null, urlDebug:String = null, paramsDebug:Object = null) {
+			if (debugField != null) DEBUGFIELD = debugField;
 			CUniteScoreAS3.theroot = root;
 			//get the hosting url
 			if (urlDebug == null) url = theroot.stage.loaderInfo.url;
@@ -135,11 +156,11 @@
 			sendLocalConnection.addEventListener(StatusEvent.STATUS, onConnStatus);
 			init();
 			
-			if (DEBUG) {
-				theroot.debug.text += "CUniteScoreAS3 url=" + url + "\n";
-				theroot.debug.text += "CUniteScoreAS3 gameParams=\n";
+			if (DEBUGFIELD) {
+				DEBUGFIELD.appendText( "CUniteScoreAS3 url=" + url + "\n" );
+				DEBUGFIELD.appendText( "CUniteScoreAS3 gameParams=\n" );
 				for (var p:String in gameParams) {
-					theroot.debug.text += "     "+p+"="+gameParams[p]+"\n";
+					DEBUGFIELD.appendText( "     " + p + "=" + gameParams[p] + "\n" );
 				}
 			}
 		}
@@ -194,7 +215,7 @@
 			var urlLoader:URLLoader;
 			var loader:Loader;
 			
-			if (DEBUG) theroot.debug.text += "sendScore score=" + score + " category=" + category + "\n";
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "sendScore score=" + score + " category=" + category + "\n" );
 
 			if (url.indexOf("pepere.org") >= 0) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
@@ -272,7 +293,7 @@
 					urlVars.gname = gameParams.gname;
 					urlVars.gscore = score;
 					
-					if (DEBUG) theroot.debug.text += "http://www.games-garden.com/index.php?act=Arcade&do=newscore POST gname=" + urlVars.gname + " gscore=" + urlVars.gscore + "\n";
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "http://www.games-garden.com/index.php?act=Arcade&do=newscore POST gname=" + urlVars.gname + " gscore=" + urlVars.gscore + "\n" );
 					
 					urlRequest.method = URLRequestMethod.POST;
 					urlRequest.data = urlVars;
@@ -295,7 +316,7 @@
 				*/
 				navigateToURL(urlRequest, "_self");
 				
-				if (DEBUG) theroot.debug.text += "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n";
+				if (DEBUGFIELD) DEBUGFIELD.appendText( "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n" );
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				// Default score submittion is mochiads leaderboards
 				if (category == mainScoreCategory) {
@@ -444,12 +465,12 @@
 		 */
 		private function topGameParams():void {
 			//Are we in a mochiads version control/encryption movieclip ?
-			if (DEBUG) theroot.debug.text += "topGameParams()\n";
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "topGameParams()\n" );
 			try {
 				var topLoader:Object = (LoaderInfo(theroot.loaderInfo)).loader;
 				gameParams = LoaderInfo(topLoader.loaderInfo).parameters;
 			} catch (e:Error) {
-				if (DEBUG) theroot.debug.text += "topGameParams Error "+e+"\n";
+				if (DEBUGFIELD) DEBUGFIELD.appendText( "topGameParams Error "+e+"\n" );
 			}
 		}
 		
@@ -496,7 +517,7 @@
 		 * Postpone the init method
 		 */
 		private function delayedInit():void {
-			if (DEBUG) theroot.debug.text += "delayedInit()\n";
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "delayedInit()\n" );
 			initTimer = new Timer(1000);
 			initTimer.addEventListener("timer", onDelayedInit);
 			initTimer.start();
