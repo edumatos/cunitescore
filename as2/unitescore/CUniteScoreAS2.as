@@ -1,7 +1,7 @@
 ﻿/**
  * CUnisScoreAS2.as
  * AS2 submition score on major game portals
- * Class created by Badim (badim.ru)
+ * From an original idea by Badim (badim.ru)
  * 
  * *************************
  * Basic use :
@@ -27,9 +27,9 @@ import unitescore.mochi.*;
 class unitescore.CUniteScoreAS2 {
 	
 	/**
-	 * TextArea debug. Before turning on this flag, get sure that you ahve a TextArea called "debug" on the root of your game swf.
+	 * Debug TextField.
 	 */
-	public var DEBUG:Boolean = false;
+	public var DEBUGFIELD:TextField;
 	
 	/**
 	 * Common LocalConnection object
@@ -72,10 +72,12 @@ class unitescore.CUniteScoreAS2 {
 	
 	/**
 	 * Constructor
+	 * @param	debugField : Debug TextField to toggle on the debug traces. undefined to not output the traces.
 	 * @param	urlDebug : To simulate a swf hosting url. Exple "kongregate.com".
-	 * @param	paramsDebug : To simulate a list of url parameters passed to the game swf.
+	 * @param	paramsDebug : To simulate a list of url parameters (flash vars) passed to the game swf.
 	 */
-	public function CUniteScoreAS2(urlDebug:String, paramsDebug:Object) {
+	public function CUniteScoreAS2(debugField:TextField, urlDebug:String, paramsDebug:Object ) {
+		if (debugField != undefined) DEBUGFIELD = debugField;
 		_root._lockroot = true;
 		_root._cuniscoreContext = this; //save the context for callbacks
 		
@@ -84,14 +86,14 @@ class unitescore.CUniteScoreAS2 {
 		
 		//get the debug root parameters
 		if (paramsDebug) {
-			if (DEBUG) _root.debug.text += "CUniteScoreAS2 paramsDebug, debug swf url parameters : \n";
+			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 paramsDebug, debug swf url parameters : \n";
 			for ( var property in paramsDebug ) {
-				if (DEBUG) _root.debug.text += "   property(" + property + ") = "+paramsDebug[property]+"\n";
+				if (DEBUGFIELD) DEBUGFIELD.text += "   property(" + property + ") = "+paramsDebug[property]+"\n";
 				_root[property] = paramsDebug[property];
 			}
 		}
 		
-		if (DEBUG) _root.debug.text += "CUniteScoreAS2 url=" + url + "\n";
+		if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 url=" + url + "\n";
 		
 		init();
 	}
@@ -142,7 +144,7 @@ class unitescore.CUniteScoreAS2 {
 		
 		var lv:LoadVars;
 		
-		trace("CUniteScoreAS2 sendScore url=" + url);
+		if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 sendScore url=" + url + " category=" + category + "\n";
 		
 		if (url.indexOf("nonoba.com") > -1) {
 			//nonoba.com
@@ -153,7 +155,7 @@ class unitescore.CUniteScoreAS2 {
 			NonobaAPI.SubmitScore(nonoba_key, score, null);
 		} else if (url.indexOf("kongregate.com") > -1) {
 			//kongregate.com
-			if (DEBUG) _root.debug.text += "CUniteScoreAS2 _root.kongregateScores=" + _root.kongregateScores + "\n";
+			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateScores=" + _root.kongregateScores + "\n";
 			_root.kongregateScores.setMode(category);
 			_root.kongregateScores.submit(score);
 		} else if (url.indexOf("surpassarcade.com") > -1) {
@@ -211,6 +213,7 @@ class unitescore.CUniteScoreAS2 {
 			}
 		} else if ( (url.indexOf("gr8games.eu") >= 0) || (url.indexOf("e-gierki.com") >= 0) ) {
 			//gr8games games
+			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.gr8games_api=" + _root.gr8games_api + "\n";
 			if (category == mainScoreCategory) {
 				sendLocalConnection.send(_root.gr8games_api,"scoreSubmit",score);
 			} else {
@@ -285,9 +288,9 @@ class unitescore.CUniteScoreAS2 {
 		
 		if (url.indexOf("kongregate.com") > -1) {
 			// Kongregate.com init
-			if (DEBUG) _root.debug.text += "CUniteScoreAS2 _root.kongregateServices=" + _root.kongregateServices + "\n";
+			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateServices=" + _root.kongregateServices + "\n";
 			_root.kongregateServices.connect();
-			if (DEBUG) _root.debug.text += "\nCUniteScoreAS2 _root.kongregateServices.connect()\n";
+			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 _root.kongregateServices.connect()\n";
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			// Gamegarage.co.uk init (tracking code)
 			if (_root.game_id != undefined && _root.user_id != undefined) {
