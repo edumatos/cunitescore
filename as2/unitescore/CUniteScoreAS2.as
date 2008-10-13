@@ -218,9 +218,9 @@ class unitescore.CUniteScoreAS2 {
 			//gr8games games
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.gr8games_api=" + _root.gr8games_api + "\n";
 			if (category == mainScoreCategory) {
-				sendLocalConnection.send(_root.gr8games_api,"scoreSubmit",score);
+				sendLocalConnection.send(_root.gr8games_api, "submitScore", score);
 			} else {
-				sendLocalConnection.send(_root.gr8games_api,"scoreSubmit",score,category);
+				sendLocalConnection.send(_root.gr8games_api,"submitScore",score,category);
 			}
 		} else if ((_root.bubbleboxApiPath != undefined) && (_root.bubbleboxGameID!=undefined) && (url.indexOf("bubblebox.com") > -1)) {
 			//bubblebox.com
