@@ -51,6 +51,11 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	private var interval:Number;
 	
+	/**
+	 * Pending saving score
+	 */
+	private var pendingScore:Number;
+	
 	//********************************************************
 	//* Scores systems that need a specific vars (ID, etc...)
 	//********************************************************
@@ -78,6 +83,7 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	public function CUniteScoreAS2(debugField:TextField, urlDebug:String, paramsDebug:Object ) {
 		if (debugField != undefined) DEBUGFIELD = debugField;
+		_root.cunitescoreInstance = this;
 		_root._lockroot = true;
 		_root._cuniscoreContext = this; //save the context for callbacks
 		
@@ -235,8 +241,29 @@ class unitescore.CUniteScoreAS2 {
 				_root.gscore = score;
 				getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
 			}
+		} else if ((_root.ibpro_gameid != undefined)) {
+			//IPB arcade, latest and anticheat version
+			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB score submit\n";
+			pendingScore = score;
+			var cheatFight:LoadVars = new LoadVars();
+			cheatFight.onLoad = function (success) {
+				if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB cheatFight, success="+success+" this.savescore="+this.savescore+" this.randchar="+this.randchar+" this.randchar2="+this.randchar2+"\n";
+				if (success) {
+					if (this.savescore == 1) {
+						var sendlv:LoadVars = new LoadVars();
+						sendlv.arcadegid = _root.ibpro_gameid;
+						sendlv.gscore = _root.cunitescoreInstance.pendingScore;
+						sendlv.gname = _root.cunitescoreInstance.getIPBgname();
+						sendlv.enscore = (score * this.randchar) ^ this.randchar2;
+						if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB do=savescore, success="+success+" sendlv.arcadegid="+sendlv.arcadegid+" sendlv.gscore="+sendlv.gscore+" sendlv.gname="+sendlv.gname+" sendlv.enscore="+sendlv.enscore+"\n";
+						sendlv.send("index.php?autocom=arcade&do=savescore", "_self", "POST");
+					}
+				}
+			};
+			lv = new LoadVars();
+			lv.sendAndLoad("index.php?autocom=arcade&do=verifyscore", cheatFight, "POST");
 		} else if (ibProArcadeGameName != undefined) {
-			//ibProArcade compatible site
+			//ibProArcade
 			if (category == mainScoreCategory) {
 				/*
 				lv = new LoadVars();
@@ -275,6 +302,29 @@ class unitescore.CUniteScoreAS2 {
 		myLoader.loadClip(apiPath, scoreGUI);
 	}
 	
+	/**
+	 * Get the Invision Power Board Aracade gname var, to be used later in score submission.
+	 * @return IPB gname var.
+	 */
+	private function getIPBgname():String {
+		var ret:String = "";
+		var str0:String = "";
+		var lastSlashIdx:Number = (url.lastIndexOf("\\") + 1);
+		if ((lastSlashIdx == -1) || (lastSlashIdx == 0)) {
+			lastSlashIdx = url.lastIndexOf("/") + 1;
+		}
+		var parseIdx:Number = lastSlashIdx;
+		var urlLength:Number = url.length;
+		while (parseIdx < urlLength) {
+			str0 = url.charAt(parseIdx);
+			if (str0 == ".") {
+			   break;
+			}
+			ret = ret + str0;
+			parseIdx++;
+		}
+		return(ret);
+	}
 	
 	/**
 	 * init method called by the constructor
@@ -282,7 +332,7 @@ class unitescore.CUniteScoreAS2 {
 	private function init():Void {
 		sendLocalConnection = new LocalConnection();
 		sendLocalConnection.onStatus = function (info:Object):Void { trace("localConnection " + info.level+" "+info); };
-		
+		var lv:LoadVars;
 		if (url.indexOf("kongregate.com") > -1) {
 			// Kongregate.com init
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateServices=" + _root.kongregateServices + "\n";
@@ -291,11 +341,23 @@ class unitescore.CUniteScoreAS2 {
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			// Gamegarage.co.uk init (tracking code)
 			if (_root.game_id != undefined && _root.user_id != undefined) {
-				var lv:LoadVars = new LoadVars();
+				lv = new LoadVars();
 				lv.game_id = _root.game_id;
 				lv.user_id = _root.user_id;
 				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
 			}
+		} else if ((_root.ibpro_gameid != undefined)) {
+			lv = new LoadVars();
+			lv.onLoad = function (success) {
+				if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, success="+success+" this.scoreVar="+this.scoreVar+"\n";
+				if (success) {
+				   _root.ipb_scoreVar = this.scoreVar;
+				}
+			};
+			var ipb_gname:String = getIPBgname();
+			var fname:String = ((("arcade/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
+			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, _root.ipb_gname="+_root.ipb_gname+" _root.ibpro_gameid="+_root.ibpro_gameid+" ipb_gname="+ipb_gname+" loading "+fname+"\n";
+			lv.load(fname);
 		}
 	}
 	
