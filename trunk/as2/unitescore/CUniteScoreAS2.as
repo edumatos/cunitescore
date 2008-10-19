@@ -13,7 +13,6 @@
  * 
  * //Optional init, XXX = mochiadID, YYY = boardID, ZZZ = game name.
  * scoreSubmitter.initMochiAdsLeaderboard("XXX","YYY");
- * scoreSubmitter.initIbProArcade("ZZZ");
  * 
  * //In game over :
  * _root.scoreSubmitter.sendScore(myScoreVar);
@@ -63,7 +62,8 @@ class unitescore.CUniteScoreAS2 {
 	/**
 	 * The game name for ibProArcade score submition
 	 */
-	private var ibProArcadeGameName:String;
+	//private var ibProArcadeGameName:String;
+	
 	/**
 	 * Mochiads leaderboards
 	 */
@@ -135,9 +135,11 @@ class unitescore.CUniteScoreAS2 {
 	 * Call this if you want to use ibProArcade scores.
 	 * @param	gameName The game name as in the swf name.
 	 */
+	/*
 	public function initIbProArcade(gameName:String):Void {
 		ibProArcadeGameName = gameName;
 	}
+	*/
 
 	/**
 	 * Call this method to submit the score. The method detect automatically on wich portal your game is hosted and call the corresponding API.
@@ -241,7 +243,7 @@ class unitescore.CUniteScoreAS2 {
 				_root.gscore = score;
 				getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
 			}
-		} else if ((_root.ibpro_gameid != undefined)) {
+		} else if ((_root.ipb_compatible == true)) {
 			//IPB arcade, latest and anticheat version
 			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB score submit\n";
 			pendingScore = score;
@@ -262,19 +264,15 @@ class unitescore.CUniteScoreAS2 {
 			};
 			lv = new LoadVars();
 			lv.sendAndLoad("index.php?autocom=arcade&do=verifyscore", cheatFight, "POST");
+		/*
 		} else if (ibProArcadeGameName != undefined) {
 			//ibProArcade
 			if (category == mainScoreCategory) {
-				/*
-				lv = new LoadVars();
-				lv.gname = ibProArcadeGameName;
-				lv.gscore = score;
-				lv.sendAndLoad("index.php?act=Arcade&do=newscore", lv, "POST");
-				*/
 				_root.gname = ibProArcadeGameName;
 				_root.gscore = score;
 				getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
 			}
+		*/
 		} else if ((mochiadsGameID != undefined) && (mochiadsBoardID != undefined)) {
 			if (category == mainScoreCategory) MochiScores.showLeaderboard( {boardID : mochiadsBoardID, score : score} );
 		}
@@ -346,17 +344,18 @@ class unitescore.CUniteScoreAS2 {
 				lv.user_id = _root.user_id;
 				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
 			}
-		} else if ((_root.ibpro_gameid != undefined)) {
+		} else if (url.indexOf("/arcade/") > -1) {
 			lv = new LoadVars();
 			lv.onLoad = function (success) {
 				if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, success="+success+" this.scoreVar="+this.scoreVar+"\n";
 				if (success) {
 				   _root.ipb_scoreVar = this.scoreVar;
+				   _root.ipb_compatible = true;
 				}
 			};
 			var ipb_gname:String = getIPBgname();
 			var fname:String = ((("arcade/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
-			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, _root.ipb_gname="+_root.ipb_gname+" _root.ibpro_gameid="+_root.ibpro_gameid+" ipb_gname="+ipb_gname+" loading "+fname+"\n";
+			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, _root.ipb_gname="+_root.ipb_gname+" ipb_gname="+ipb_gname+" loading "+fname+"\n";
 			lv.load(fname);
 		}
 	}
