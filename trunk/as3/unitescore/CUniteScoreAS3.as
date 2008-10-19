@@ -13,7 +13,6 @@
  * 
  * //Optional init, XXX = mochiadID, YYY = boardID, ZZZ = game name.
  * scoreSubmitter.initMochiAdsLeaderboard("XXX","YYY");
- * scoreSubmitter.initIbProArcade("ZZZ");
  * 
  * //In game over :
  * scoreSubmitter.sendScore(myScoreVar);
@@ -115,7 +114,7 @@ package unitescore {
 		/**
 		 * The game name for ibProArcade score submition
 		 */
-		private var ibProArcadeGameName:String;
+		//private var ibProArcadeGameName:String;
 	
 		/**
 		 * Mochiads parameters
@@ -199,9 +198,11 @@ package unitescore {
 		 * Call this if you want to use ibProArcade scores.
 		 * @param	gameName The game name on ibProArcade
 		 */
+		/*
 		public function initIbProArcade(gameName:String):void {
 			ibProArcadeGameName = gameName;
 		}
+		*/
 		
 		/**
 		 * Call this method to submit the score. The method detect automatically on wich portal your game is hosted and call the corresponding API.
@@ -306,6 +307,7 @@ package unitescore {
 					*/
 					navigateToURL(urlRequest, "_self");
 				}
+			/*
 			} else if (ibProArcadeGameName != null) {
 				urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
 				urlVars = new URLVariables();
@@ -313,13 +315,10 @@ package unitescore {
 				urlVars.gscore = score;
 				urlRequest.method = URLRequestMethod.POST;
 				urlRequest.data = urlVars;
-				/*
-				urlLoader = new URLLoader();
-				urlLoader.load(urlRequest);
-				*/
 				navigateToURL(urlRequest, "_self");
 				
 				if (DEBUGFIELD) DEBUGFIELD.appendText( "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n" );
+			*/
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				// Default score submittion is mochiads leaderboards
 				if (category == mainScoreCategory) {
@@ -386,9 +385,11 @@ package unitescore {
 			for (var i:int = 0; i < scoreParams.length;i++) {
 				if (url.indexOf(scoreParams[i].domain) >= 0) return scoreParams[i].GUI;
 			}
+			/*
 			if (ibProArcadeGameName != null) {
 				return true; //not really powered by GUI, but a score submission is reloading the page
 			}
+			*/
 			if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				return true; //mochiads score is a GUI
 			}
