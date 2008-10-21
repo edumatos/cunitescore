@@ -83,12 +83,14 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	public function CUniteScoreAS2(debugField:TextField, urlDebug:String, paramsDebug:Object ) {
 		if (debugField != undefined) DEBUGFIELD = debugField;
+		if (DEBUGFIELD) DEBUGFIELD.text += "\n";
 		_root.cunitescoreInstance = this;
 		_root._lockroot = true;
 		_root._cuniscoreContext = this; //save the context for callbacks
 		
 		//get the hosting url
 		url = urlDebug || _root._url;
+		url = url.toLowerCase();
 		
 		//get the debug root parameters
 		if (paramsDebug) {
@@ -180,7 +182,7 @@ class unitescore.CUniteScoreAS2 {
 			} else {
 				sendLocalConnection.send(_root.com_mindjolt_api, "submitScore", score, category);
 			}
-		} else if (url.indexOf("gamebrew.com") >= 0) {
+		} else if (url.indexOf("gamebrew.com") > -1) {
 			if (category == mainScoreCategory) sendLocalConnection.send("gbapi","scoreSubmit",score);
 		} else if (url.indexOf("hallpass.com") > -1) {
 			//hallpass.com
@@ -256,7 +258,7 @@ class unitescore.CUniteScoreAS2 {
 						sendlv.arcadegid = _root.ibpro_gameid;
 						sendlv.gscore = _root.cunitescoreInstance.pendingScore;
 						sendlv.gname = _root.cunitescoreInstance.getIPBgname();
-						sendlv.enscore = (score * this.randchar) ^ this.randchar2;
+						sendlv.enscore = (_root.cunitescoreInstance.pendingScore * this.randchar) ^ this.randchar2;
 						if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB do=savescore, success="+success+" sendlv.arcadegid="+sendlv.arcadegid+" sendlv.gscore="+sendlv.gscore+" sendlv.gname="+sendlv.gname+" sendlv.enscore="+sendlv.enscore+"\n";
 						sendlv.send("index.php?autocom=arcade&do=savescore", "_self", "POST");
 					}
@@ -335,7 +337,7 @@ class unitescore.CUniteScoreAS2 {
 			// Kongregate.com init
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateServices=" + _root.kongregateServices + "\n";
 			_root.kongregateServices.connect();
-			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 _root.kongregateServices.connect()\n";
+			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateServices.connect()\n";
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			// Gamegarage.co.uk init (tracking code)
 			if (_root.game_id != undefined && _root.user_id != undefined) {
@@ -344,18 +346,22 @@ class unitescore.CUniteScoreAS2 {
 				lv.user_id = _root.user_id;
 				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
 			}
-		} else if (url.indexOf("/arcade/") > -1) {
+		} else if ((url.indexOf("/arcade/") > -1) || (url.indexOf("/games/") > -1)) {
+			// There is a chance we are on a IPBArcade V32 compatible site, we try to load .txt file to be sure
 			lv = new LoadVars();
 			lv.onLoad = function (success) {
-				if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, success="+success+" this.scoreVar="+this.scoreVar+"\n";
+				if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "CUniteScoreAS2 IPB init, success="+success+" this.scoreVar="+this.scoreVar+"\n";
 				if (success) {
 				   _root.ipb_scoreVar = this.scoreVar;
 				   _root.ipb_compatible = true;
 				}
 			};
 			var ipb_gname:String = getIPBgname();
-			var fname:String = ((("arcade/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
-			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB init, _root.ipb_gname="+_root.ipb_gname+" ipb_gname="+ipb_gname+" loading "+fname+"\n";
+			var basedir:String;				
+			if (url.indexOf("/arcade/") > -1) basedir = "arcade";
+			else basedir = "games";
+			var fname:String = (((basedir + "/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
+			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 IPB init, ipb_gname="+ipb_gname+" loading "+fname+"\n";
 			lv.load(fname);
 		}
 	}

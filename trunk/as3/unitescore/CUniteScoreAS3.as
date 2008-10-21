@@ -22,12 +22,16 @@
 package unitescore { 
 	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
+	import flash.events.HTTPStatusEvent;
+	import flash.events.IOErrorEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.events.StatusEvent;
 	import flash.external.ExternalInterface;
 	import flash.display.LoaderInfo;
 	import flash.display.Loader;
 	import flash.net.LocalConnection;
 	import flash.net.URLLoader;
+	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
 	import flash.events.Event;
@@ -122,6 +126,11 @@ package unitescore {
 		private var mochiadsGameID:String, mochiadsBoardID:String;
 		
 		/**
+		 * IPBArcade
+		 */
+		private var ipb_compatible:Boolean = false;
+		
+		/**
 		 * The local connection object
 		 */
 		private var sendLocalConnection:LocalConnection = new LocalConnection();
@@ -144,14 +153,19 @@ package unitescore {
 		 */
 		function CUniteScoreAS3(root:MovieClip, debugField:TextField = null, urlDebug:String = null, paramsDebug:Object = null) {
 			if (debugField != null) DEBUGFIELD = debugField;
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "\n" );
 			CUniteScoreAS3.theroot = root;
+			
 			//get the hosting url
 			if (urlDebug == null) url = theroot.stage.loaderInfo.url;
 			else url = urlDebug;
+			url = url.toLocaleLowerCase();
+			
 			// get the parameters passed into the game
 			if (paramsDebug == null) {
 				gameParams = LoaderInfo(theroot.loaderInfo).parameters;
 			} else gameParams = paramsDebug;
+			
 			// init local connection listener
 			sendLocalConnection.addEventListener(StatusEvent.STATUS, onConnStatus);
 			init();
@@ -219,19 +233,19 @@ package unitescore {
 			
 			if (DEBUGFIELD) DEBUGFIELD.appendText( "sendScore score=" + score + " category=" + category + "\n" );
 
-			if (url.indexOf("pepere.org") >= 0) {
+			if (url.indexOf("pepere.org") > -1) {
 				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
-			} else if (url.indexOf("jeuxgratuits.net") >= 0) {
+			} else if (url.indexOf("jeuxgratuits.net") > -1) {
 				ExternalInterface.call("flashScoreService", score, category);
-			} else if (url.indexOf("mindjolt.com") >= 0) {
+			} else if (url.indexOf("mindjolt.com") > -1) {
 				if (!mindJoltAPI) return;
 				if (category == mainScoreCategory) mindJoltAPI.service.submitScore(score);
 				else mindJoltAPI.service.submitScore(score, category);
-			} else if (url.indexOf("kongregate.com") >= 0) {
+			} else if (url.indexOf("kongregate.com") > -1) {
 				if (!kongregateAPI) return;
 				if (category == mainScoreCategory) kongregateAPI.scores.submit(score);
 				else kongregateAPI.scores.submit(score, category);
-			} else if (url.indexOf("nonoba.com") >= 0) {
+			} else if (url.indexOf("nonoba.com") > -1) {
 				var nonoba_key:String;
 				//On nonoba.com you have to create a highscore for your game. Set the key to "totalscores" for your main score.
 				if (category == mainScoreCategory) {
@@ -247,17 +261,17 @@ package unitescore {
 						case NonobaAPI.ERROR: { trace("A Nonoba error occurred."); break; }
 					}
 				});
-			} else if (url.indexOf("gamebrew.com") >= 0) {
+			} else if (url.indexOf("gamebrew.com") > -1) {
 				if (category == mainScoreCategory) {
 					try {sendLocalConnection.send("gbapi", "scoreSubmit", score); } catch (error:ArgumentError) {}
 				}
-			} else if ( (url.indexOf("gr8games.eu") >= 0) || (url.indexOf("e-gierki.com") >= 0) ) {
+			} else if ( (url.indexOf("gr8games.eu") > -1) || (url.indexOf("e-gierki.com") > -1) ) {
 				if (category == mainScoreCategory) {
 					try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score); } catch (error:ArgumentError) {}
 				} else {
 					try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score, category); } catch (error:ArgumentError) {}
 				}
-			} else if (url.indexOf("bubblebox.com") >= 0) {
+			} else if (url.indexOf("bubblebox.com") > -1) {
 				if (category == mainScoreCategory) {
 					if (apiGUI != null) {
 						showScoreGUI();
@@ -272,7 +286,7 @@ package unitescore {
 						loadScoreGUI(gameParams.bubbleboxApiPath, urlVars, bubbleboxComplete);
 					}
 				}
-			} else if (url.indexOf("gamegarage.co.uk") >= 0) {
+			} else if (url.indexOf("gamegarage.co.uk") > -1) {
 				if (category == mainScoreCategory) {
 					if (apiGUI != null) {
 						showScoreGUI();
@@ -319,6 +333,16 @@ package unitescore {
 				
 				if (DEBUGFIELD) DEBUGFIELD.appendText( "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n" );
 			*/
+			} else if (ipb_compatible) {
+				if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPB score submit\n" );
+				pendingScore = score;
+				
+				urlRequest = new URLRequest("index.php?autocom=arcade&do=verifyscore");
+				urlRequest.method = URLRequestMethod.POST;
+				urlLoader = new URLLoader();
+				urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES;
+				urlLoader.addEventListener(Event.COMPLETE, IPBArcadeCheatComplete);
+				urlLoader.load(urlRequest);
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				// Default score submittion is mochiads leaderboards
 				if (category == mainScoreCategory) {
@@ -350,7 +374,7 @@ package unitescore {
 			var logoClass:Class;
 			var i:int;
 			for (i = logoClasses.length - 1; i >= 0; i--) {
-				if (url.indexOf(logoClasses[i].domain) >= 0) {
+				if (url.indexOf(logoClasses[i].domain) > -1) {
 					// Each entry in the array logoClasses define a 'mcclass' property (String), anme of the logo MovieClip class.
 					// All logo classes must be in the package unitescore
 					logoClass = Class(getDefinitionByName("unitescore." + logoClasses[i].mcclass));
@@ -383,13 +407,16 @@ package unitescore {
 		 */
 		public function isScorePoweredByGUI():Boolean {
 			for (var i:int = 0; i < scoreParams.length;i++) {
-				if (url.indexOf(scoreParams[i].domain) >= 0) return scoreParams[i].GUI;
+				if (url.indexOf(scoreParams[i].domain) > -1) return scoreParams[i].GUI;
 			}
 			/*
 			if (ibProArcadeGameName != null) {
 				return true; //not really powered by GUI, but a score submission is reloading the page
 			}
 			*/
+			if (ipb_compatible) {
+				return true; //not really powered by GUI, but a score submission is reloading the page
+			}
 			if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
 				return true; //mochiads score is a GUI
 			}
@@ -478,6 +505,30 @@ package unitescore {
 			}
 		}
 		
+		/**
+		 * Get the Invision Power Board Aracade gname var, to be used later in score submission.
+		 * @return IPB gname var.
+		 */
+		private function getIPBgname():String {
+			var ret:String = "";
+			var str0:String = "";
+			var lastSlashIdx:Number = (url.lastIndexOf("\\") + 1);
+			if ((lastSlashIdx == -1) || (lastSlashIdx == 0)) {
+				lastSlashIdx = url.lastIndexOf("/") + 1;
+			}
+			var parseIdx:Number = lastSlashIdx;
+			var urlLength:Number = url.length;
+			while (parseIdx < urlLength) {
+				str0 = url.charAt(parseIdx);
+				if (str0 == ".") {
+				   break;
+				}
+				ret = ret + str0;
+				parseIdx++;
+			}
+			return(ret);
+		}
+		
 		
 		/**
 		 * Called by the constructor.
@@ -487,7 +538,7 @@ package unitescore {
 			
 			//Top container management (mochiads version control)
 			for (var i:int = 0; i < scoreParams.length;i++) {
-				if (url.indexOf(scoreParams[i].domain) >= 0) {
+				if (url.indexOf(scoreParams[i].domain) > -1) {
 					if ( scoreParams[i].needUrlVars.length > 0 ) {
 						for (var j:int = 0; j < scoreParams[i].needUrlVars.length; j++) {
 							if (gameParams[scoreParams[i].needUrlVars[j]] == null) {
@@ -500,20 +551,43 @@ package unitescore {
 				}
 			}
 			
-			if (url.indexOf("mindjolt.com") >= 0) {
+			if (url.indexOf("mindjolt.com") > -1) {
 				// manually load the API
 				//if (!gameParams.mjPath) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
 				//if (!gameParams.mjPath) { delayedInit(); return; }
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, mindJoltComplete);
 				loader.load(new URLRequest(gameParams.mjPath));
 				theroot.addChild(loader);
-			} else if (url.indexOf("kongregate.com") >= 0) {
+			} else if (url.indexOf("kongregate.com") > -1) {
 				// The API path. The debug version ("shadow" API) will load if testing locally.
 				//if (!gameParams.api_path) topGameParams(); //try to get loader info from top container in case the game swf is embedded (mochiads version control)
 				//if (!gameParams.api_path) { delayedInit(); return; }
 				loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
 				loader.load ( new URLRequest( gameParams.api_path ) );
 				theroot.addChild ( loader );
+			}  else if ((url.indexOf("/arcade/") > -1) || (url.indexOf("/games/") > -1)) {
+				// There is a chance we are on a IPBArcade V32 compatible site, we try to load .txt file to be sure
+				var basedir:String;
+				if (url.indexOf("/arcade/") > -1) basedir = "arcade";
+				else basedir = "games";
+				
+				var ipb_gname:String = getIPBgname();
+				var fname:String = ((( basedir + "/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
+				
+				var urlRequest:URLRequest = new URLRequest(fname);
+				var urlLoader:URLLoader = new URLLoader();
+				urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES;
+				urlLoader.addEventListener(Event.COMPLETE, IPBArcadeComplete);
+				urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
+				urlLoader.addEventListener(HTTPStatusEvent.HTTP_STATUS, httpStatusHandler);
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+
+				if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPB init, ipb_gname="+ipb_gname+" loading "+fname+"\n" );
+				try {
+					urlLoader.load(urlRequest);
+				} catch (e:Error) {
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPB init, Error "+e+"\n" );
+				}
 			}
 		}
 		
@@ -536,6 +610,37 @@ package unitescore {
 			initTimer = null;
 			init();
 		}
+		
+		/**
+		 * IPBArcade cheat check Completed
+		 */
+		private function IPBArcadeCheatComplete(event:Event):void {
+			var urlLoader:URLLoader = URLLoader(event.target);
+			var urlVars:URLVariables = new URLVariables(urlLoader.data);
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPBArcadeCheatComplete, urlVars.savescore="+urlVars.savescore+" urlVars.randchar="+urlVars.randchar+" urlVars.randchar2="+urlVars.randchar2+"\n" );
+			if (urlVars.savescore == 1) {
+				var urlRequest:URLRequest = new URLRequest("index.php?autocom=arcade&do=savescore");
+				urlRequest.method = URLRequestMethod.POST;
+				var urlVars2:URLVariables = new URLVariables();
+				if (gameParams.ibpro_gameid) urlVars2.arcadegid = gameParams.ibpro_gameid;
+				urlVars2.gscore = pendingScore;
+				urlVars2.gname = getIPBgname();
+				urlVars2.enscore = (pendingScore * urlVars.randchar) ^ urlVars.randchar2;
+				urlRequest.data = urlVars2;
+				navigateToURL(urlRequest, "_self");
+			}
+		}
+		
+		/**
+		 * IPBArcade Init Completed
+		 */
+		private function IPBArcadeComplete(event:Event):void {
+			var urlLoader:URLLoader = URLLoader(event.target);
+			var urlVars:URLVariables = new URLVariables(urlLoader.data);
+			ipb_compatible = true;
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPBArcadeComplete, success!\n" );
+		}
+				
 		
 		/**
 		 * Mindjolt component loaded
@@ -562,7 +667,7 @@ package unitescore {
 		 * @param	e
 		 */
 		private function bubbleboxComplete ( e:Event ):void {
-			trace ("[bubblebox API] bubbleboxComplete");
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 bubbleboxComplete\n" );
 			//apiGUI = e.currentTarget;
 			showScoreGUI();
 			
@@ -574,7 +679,7 @@ package unitescore {
 		 * @param	e
 		 */
 		private function gamegarageComplete ( e:Event ):void {
-			trace ("[gamegarage API] gamegarageComplete");
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 gamegarageComplete\n" );
 			//apiGUI = e.currentTarget;
 			showScoreGUI();
 			
@@ -592,7 +697,7 @@ package unitescore {
 		private function loadScoreGUI(apiPath:String, urlVars:URLVariables, completeCallback:Function):void {
 			var loader:Loader = new Loader();
 			loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, completeCallback );
-			trace("loadScoreGUI apiPath=" + apiPath);
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 loadScoreGUI apiPath=" + apiPath + "\n" );
 			var urlRequest:URLRequest = new URLRequest( apiPath);
 			urlRequest.method = URLRequestMethod.GET;
 			urlRequest.data = urlVars;
@@ -606,7 +711,7 @@ package unitescore {
 		 * Show the score submittion GUI
 		 */
 		private function showScoreGUI ( ):void {
-			trace ("[score GUI API] showScoreGUI");
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 showScoreGUI\n" );
 			//Keep the GUI on TOP
 			//TODO check the GUI is on top on every frame
 			try {
@@ -622,12 +727,24 @@ package unitescore {
 		private function onConnStatus(event:StatusEvent):void {
 			switch (event.level) {
 				case "status":
-					trace("LocalConnection.send() succeeded");
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 LocalConnection.send() succeeded\n" );
 					break;
 				case "error":
-					trace("LocalConnection.send() failed");
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 LocalConnection.send() failed\n" );
 					break;
 			}
 		}
+		
+		private function securityErrorHandler(event:SecurityErrorEvent):void {
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 securityErrorHandler : "+event+"\n" );
+        }
+
+        private function httpStatusHandler(event:HTTPStatusEvent):void {
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 httpStatusHandler : "+event+"\n" );
+        }
+
+        private function ioErrorHandler(event:IOErrorEvent):void {
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 ioErrorHandler : "+event+"\n" );
+        }
 	}
 }
