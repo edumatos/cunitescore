@@ -55,6 +55,43 @@ package unitescore {
 		public var DEBUGFIELD:TextField;
 		
 		/**
+		 * Hosting url of the game swf
+		 */
+		private var url:String; //toLowerCase
+		private var urlOrig:String;
+		
+		/**
+		 * parameters of the swf url (game.swf?myvar1=XXX&myvar2=YYY)
+		 */
+		private var gameParams:Object;
+		
+		/**
+		 * This category is used on portals that don't manage score categories.
+		 * If your game don't use score categories, you do'nt need to bother with this.
+		 */
+		public var mainScoreCategory:String = "";
+		
+		/**
+		 * The game name for ibProArcade score submition
+		 */
+		//private var ibProArcadeGameName:String;
+	
+		/**
+		 * Mochiads parameters
+		 */
+		private var mochiadsGameID:String, mochiadsBoardID:String;
+		
+		/**
+		 * IPBArcade
+		 */
+		private var ipb_compatible:Boolean = false;
+		
+		/**
+		 * The local connection object
+		 */
+		private var sendLocalConnection:LocalConnection = new LocalConnection();
+		
+		/**
 		 * Logo layouts
 		 */
 		static public var TOP:int = 0;
@@ -108,41 +145,13 @@ package unitescore {
 			{ domain:"gamebrew.com", GUI:false, needUrlVars:[] } ,
 			{ domain:"games-garden.com", GUI:true, needUrlVars:["isUser","gname"] } //not really powered by GUI, but a score submission is reloading the page
 		];
-		
-		/**
-		 * This category is used on portals that don't manage score categories.
-		 * If your game don't use score categories, you do'nt need to bother with this.
-		 */
-		public var mainScoreCategory:String = "";
-		
-		/**
-		 * The game name for ibProArcade score submition
-		 */
-		//private var ibProArcadeGameName:String;
-	
-		/**
-		 * Mochiads parameters
-		 */
-		private var mochiadsGameID:String, mochiadsBoardID:String;
-		
-		/**
-		 * IPBArcade
-		 */
-		private var ipb_compatible:Boolean = false;
-		
-		/**
-		 * The local connection object
-		 */
-		private var sendLocalConnection:LocalConnection = new LocalConnection();
-		
+
 		public static var theroot:MovieClip;
 		private var initTimer:Timer;
 		private var mindJoltAPI:Object;
 		private var kongregateAPI:Object;
 		private var apiGUI:DisplayObject,apiGUIParams:Object;
 		private var pendingScore:int;
-		private var url:String;
-		private var gameParams:Object; //parameters of the swf url (game.swf?myvar1=XXX&myvar2=YYY)
 
 		/**
 		 * Constructor
@@ -159,6 +168,7 @@ package unitescore {
 			//get the hosting url
 			if (urlDebug == null) url = theroot.stage.loaderInfo.url;
 			else url = urlDebug;
+			urlOrig = url;
 			url = url.toLocaleLowerCase();
 			
 			// get the parameters passed into the game
@@ -512,14 +522,14 @@ package unitescore {
 		private function getIPBgname():String {
 			var ret:String = "";
 			var str0:String = "";
-			var lastSlashIdx:Number = (url.lastIndexOf("\\") + 1);
+			var lastSlashIdx:Number = (urlOrig.lastIndexOf("\\") + 1);
 			if ((lastSlashIdx == -1) || (lastSlashIdx == 0)) {
-				lastSlashIdx = url.lastIndexOf("/") + 1;
+				lastSlashIdx = urlOrig.lastIndexOf("/") + 1;
 			}
 			var parseIdx:Number = lastSlashIdx;
-			var urlLength:Number = url.length;
+			var urlLength:Number = urlOrig.length;
 			while (parseIdx < urlLength) {
-				str0 = url.charAt(parseIdx);
+				str0 = urlOrig.charAt(parseIdx);
 				if (str0 == ".") {
 				   break;
 				}
@@ -565,14 +575,12 @@ package unitescore {
 				loader.contentLoaderInfo.addEventListener ( Event.COMPLETE, kongregateComplete );
 				loader.load ( new URLRequest( gameParams.api_path ) );
 				theroot.addChild ( loader );
-			}  else if ((url.indexOf("/arcade/") > -1) || (url.indexOf("/games/") > -1)) {
+			}  else if ((urlOrig.indexOf("/arcade/") > -1) || (urlOrig.indexOf("/Games/") > -1)) {
 				// There is a chance we are on a IPBArcade V32 compatible site, we try to load .txt file to be sure
-				var basedir:String;
-				if (url.indexOf("/arcade/") > -1) basedir = "arcade";
-				else basedir = "games";
+				var basedir:String="arcade";
 				
 				var ipb_gname:String = getIPBgname();
-				var fname:String = ((( basedir + "/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
+				var fname:String = ((( "arcade/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
 				
 				var urlRequest:URLRequest = new URLRequest(fname);
 				var urlLoader:URLLoader = new URLLoader();
