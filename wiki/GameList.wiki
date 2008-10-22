@@ -1,6 +1,6 @@
 #summary List of Games implementing cUniteScore classes.
 
   * Spider in the rain [http://www.pepere.org/programmation-flash_0_3x/jeu-flash-spider-the-rain_u_185.html play] [http://www.mochiads.com/games/spider-in-the-rain/ download]
-  * Pawel and the Teuntonic Castle [http://www.games-garden.com/59-Pawel-and-the-Teutonic-Castle.html play] [http://games.mochiads.com/c/g/pawel-the-teutonic-castle.zip download]
+  * Pawel and the Teutonic Castle [http://www.games-garden.com/59-Pawel-and-the-Teutonic-Castle.html play] [http://games.mochiads.com/c/g/pawel-the-teutonic-castle.zip download zip] / [# download tar]  
   * Rolling Turtle : [http://www.pepere.org/flash-development_1_3x/flash-game-rolling-turtle_u_171.html play] [http://games.mochiads.com/c/g/rolling-turtle.zip download]
   * BLockoban [http://www.pepere.org/flash-development_1_3x/flash-game-blockoban_u_158.html play]
