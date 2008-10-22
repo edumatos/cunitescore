@@ -45,6 +45,7 @@ package unitescore {
 	import flash.utils.Timer;
 	import unitescore.mochi.*;
 	import unitescore.nonoba.*;
+	import unitescore.utils.URLVars;
 
 	
 	public class CUniteScoreAS3 {
@@ -350,7 +351,7 @@ package unitescore {
 				urlRequest = new URLRequest("index.php?autocom=arcade&do=verifyscore");
 				urlRequest.method = URLRequestMethod.POST;
 				urlLoader = new URLLoader();
-				urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES;
+				//urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES; //The format of the page returned by this request is compatible with AS2 url vars but not with AS3 URLVariables.
 				urlLoader.addEventListener(Event.COMPLETE, IPBArcadeCheatComplete);
 				urlLoader.load(urlRequest);
 			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
@@ -584,7 +585,7 @@ package unitescore {
 				
 				var urlRequest:URLRequest = new URLRequest(fname);
 				var urlLoader:URLLoader = new URLLoader();
-				urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES;
+				//urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES; //The format of the .txt file is compatible with AS2 url vars but not with AS3 URLVariables.
 				urlLoader.addEventListener(Event.COMPLETE, IPBArcadeComplete);
 				urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
 				urlLoader.addEventListener(HTTPStatusEvent.HTTP_STATUS, httpStatusHandler);
@@ -624,7 +625,8 @@ package unitescore {
 		 */
 		private function IPBArcadeCheatComplete(event:Event):void {
 			var urlLoader:URLLoader = URLLoader(event.target);
-			var urlVars:URLVariables = new URLVariables(urlLoader.data);
+			//var urlVars:URLVariables = new URLVariables(urlLoader.data);
+			var urlVars:URLVars = new URLVars(urlLoader.data);
 			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPBArcadeCheatComplete, urlVars.savescore="+urlVars.savescore+" urlVars.randchar="+urlVars.randchar+" urlVars.randchar2="+urlVars.randchar2+"\n" );
 			if (urlVars.savescore == 1) {
 				var urlRequest:URLRequest = new URLRequest("index.php?autocom=arcade&do=savescore");
@@ -644,9 +646,10 @@ package unitescore {
 		 */
 		private function IPBArcadeComplete(event:Event):void {
 			var urlLoader:URLLoader = URLLoader(event.target);
-			var urlVars:URLVariables = new URLVariables(urlLoader.data);
+			//var urlVars:URLVariables = new URLVariables(urlLoader.data);
+			var urlVars:URLVars = new URLVars(urlLoader.data);
 			ipb_compatible = true;
-			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPBArcadeComplete, success!\n" );
+			if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPBArcadeComplete, success! scoreVar="+urlVars.scoreVar+" urlVars="+urlVars+"\n" );
 		}
 				
 		
