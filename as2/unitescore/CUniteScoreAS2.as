@@ -43,7 +43,8 @@ class unitescore.CUniteScoreAS2 {
 	/**
 	 * Hosting url of the game swf
 	 */
-	private var url:String;
+	private var url:String; //toLowerCase
+	private var urlOrig:String;
 	
 	/**
 	 * Setinterval object
@@ -90,6 +91,7 @@ class unitescore.CUniteScoreAS2 {
 		
 		//get the hosting url
 		url = urlDebug || _root._url;
+		urlOrig = url;
 		url = url.toLowerCase();
 		
 		//get the debug root parameters
@@ -309,14 +311,14 @@ class unitescore.CUniteScoreAS2 {
 	private function getIPBgname():String {
 		var ret:String = "";
 		var str0:String = "";
-		var lastSlashIdx:Number = (url.lastIndexOf("\\") + 1);
+		var lastSlashIdx:Number = (urlOrig.lastIndexOf("\\") + 1);
 		if ((lastSlashIdx == -1) || (lastSlashIdx == 0)) {
-			lastSlashIdx = url.lastIndexOf("/") + 1;
+			lastSlashIdx = urlOrig.lastIndexOf("/") + 1;
 		}
 		var parseIdx:Number = lastSlashIdx;
-		var urlLength:Number = url.length;
+		var urlLength:Number = urlOrig.length;
 		while (parseIdx < urlLength) {
-			str0 = url.charAt(parseIdx);
+			str0 = urlOrig.charAt(parseIdx);
 			if (str0 == ".") {
 			   break;
 			}
@@ -346,7 +348,7 @@ class unitescore.CUniteScoreAS2 {
 				lv.user_id = _root.user_id;
 				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
 			}
-		} else if ((url.indexOf("/arcade/") > -1) || (url.indexOf("/games/") > -1)) {
+		} else if ((urlOrig.indexOf("/arcade/") > -1) || (urlOrig.indexOf("/Games/") > -1)) {
 			// There is a chance we are on a IPBArcade V32 compatible site, we try to load .txt file to be sure
 			lv = new LoadVars();
 			lv.onLoad = function (success) {
@@ -357,10 +359,7 @@ class unitescore.CUniteScoreAS2 {
 				}
 			};
 			var ipb_gname:String = getIPBgname();
-			var basedir:String;				
-			if (url.indexOf("/arcade/") > -1) basedir = "arcade";
-			else basedir = "games";
-			var fname:String = (((basedir + "/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
+			var fname:String = ((("arcade/gamedata/" + ipb_gname) + "/") + ipb_gname) + ".txt";
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 IPB init, ipb_gname="+ipb_gname+" loading "+fname+"\n";
 			lv.load(fname);
 		}
