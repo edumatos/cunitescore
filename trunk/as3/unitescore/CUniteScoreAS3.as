@@ -388,7 +388,11 @@ package unitescore {
 				if (url.indexOf(logoClasses[i].domain) > -1) {
 					// Each entry in the array logoClasses define a 'mcclass' property (String), anme of the logo MovieClip class.
 					// All logo classes must be in the package unitescore
-					logoClass = Class(getDefinitionByName("unitescore." + logoClasses[i].mcclass));
+					try {
+						logoClass = Class(getDefinitionByName("unitescore." + logoClasses[i].mcclass));
+					} catch (e:Error) {
+						break;
+					}
 				}
 			}
 			
