@@ -5,3 +5,4 @@
   * Pumpkin Sweeper [http://games-garden.com/309-Pumpkin-Sweeper.html play] [http://cdn.mochiads.com/c/g/pumpkin-sweeper.zip download zip] / [http://overloadstudios.co.uk/temp/game_pumpkin-sweeper.tar download tar]  
   * Rolling Turtle : [http://www.pepere.org/flash-development_1_3x/flash-game-rolling-turtle_u_171.html play] [http://games.mochiads.com/c/g/rolling-turtle.zip download]
   * BLockoban [http://www.pepere.org/flash-development_1_3x/flash-game-blockoban_u_158.html play] [http://cdn.mochiads.com/c/g/blockoban-88.zip download]
+  * Blitzkrieg [http://games-garden.com/109-Blitzkrieg.html play] [http://cdn.mochiads.com/c/g/blitzkrieg.zip zip] / [http://overloadstudios.co.uk/temp/game_blitzkrieg.tar download tar]
