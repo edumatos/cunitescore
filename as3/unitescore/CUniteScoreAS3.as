@@ -182,7 +182,7 @@ package unitescore {
 			init();
 			
 			if (DEBUGFIELD) {
-				DEBUGFIELD.appendText( "CUniteScoreAS3 url=" + url + "\n" );
+				DEBUGFIELD.appendText( "CUniteScoreAS3 url=" + urlOrig + "\n" );
 				DEBUGFIELD.appendText( "CUniteScoreAS3 gameParams=\n" );
 				for (var p:String in gameParams) {
 					DEBUGFIELD.appendText( "     " + p + "=" + gameParams[p] + "\n" );
@@ -330,7 +330,7 @@ package unitescore {
 					urlLoader = new URLLoader();
 					urlLoader.load(urlRequest);
 					*/
-					navigateToURL(urlRequest, "_self");
+					navigateToURL(urlRequest, (DEBUGFIELD ? "_blank":"_self"));
 				}
 			/*
 			} else if (ibProArcadeGameName != null) {
@@ -527,14 +527,19 @@ package unitescore {
 		private function getIPBgname():String {
 			var ret:String = "";
 			var str0:String = "";
-			var lastSlashIdx:Number = (urlOrig.lastIndexOf("\\") + 1);
+			var firstInterIdx:Number = urlOrig.indexOf("?");
+			var cutUrl:String;
+			if (firstInterIdx > -1) cutUrl = urlOrig.substr(0, firstInterIdx);
+			else cutUrl = urlOrig;
+			
+			var lastSlashIdx:Number = (cutUrl.lastIndexOf("\\") + 1);
 			if ((lastSlashIdx == -1) || (lastSlashIdx == 0)) {
-				lastSlashIdx = urlOrig.lastIndexOf("/") + 1;
+				lastSlashIdx = cutUrl.lastIndexOf("/") + 1;
 			}
 			var parseIdx:Number = lastSlashIdx;
-			var urlLength:Number = urlOrig.length;
+			var urlLength:Number = cutUrl.length;
 			while (parseIdx < urlLength) {
-				str0 = urlOrig.charAt(parseIdx);
+				str0 = cutUrl.charAt(parseIdx);
 				if (str0 == ".") {
 				   break;
 				}
@@ -641,7 +646,7 @@ package unitescore {
 				urlVars2.gname = getIPBgname();
 				urlVars2.enscore = (pendingScore * urlVars.randchar) ^ urlVars.randchar2;
 				urlRequest.data = urlVars2;
-				navigateToURL(urlRequest, "_self");
+				navigateToURL(urlRequest, (DEBUGFIELD ? "_blank":"_self"));
 			}
 		}
 		
