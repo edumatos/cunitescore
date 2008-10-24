@@ -173,9 +173,9 @@ class unitescore.CUniteScoreAS2 {
 		} else if (url.indexOf("surpassarcade.com") > -1) {
 			//surpassarcade.com
 			if (category == mainScoreCategory) {
-				sendLocalConnection.send("spapi", "submitScore", score);
+				sendLocalConnection.send("spapi", "sendScore", score);
 			} else {
-				sendLocalConnection.send("spapi", "submitScore", score, category);
+				sendLocalConnection.send("spapi", "sendScore", score, category);
 			}
 		} else if ((url.indexOf("mindjolt") > -1)||(url.indexOf("thisarcade.com") > -1)) {
 			//mindjolt.com & thisarcade.com
