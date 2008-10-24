@@ -103,7 +103,7 @@ class unitescore.CUniteScoreAS2 {
 			}
 		}
 		
-		if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 url=" + url + "\n";
+		if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 url=" + urlOrig + "\n";
 		
 		init();
 	}
@@ -245,7 +245,7 @@ class unitescore.CUniteScoreAS2 {
 			//games-garden.com (derived from ibProArcade system)
 			if (category == mainScoreCategory) {
 				_root.gscore = score;
-				getURL("index.php?act=Arcade&do=newscore", "_self", "POST");
+				getURL("index.php?act=Arcade&do=newscore", (DEBUGFIELD ? "_blank":"_self"), "POST");
 			}
 		} else if ((_root.ipb_compatible == true)) {
 			//IPB arcade, latest and anticheat version
@@ -262,7 +262,7 @@ class unitescore.CUniteScoreAS2 {
 						sendlv.gname = _root.cunitescoreInstance.getIPBgname();
 						sendlv.enscore = (_root.cunitescoreInstance.pendingScore * this.randchar) ^ this.randchar2;
 						if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "\nCUniteScoreAS2 IPB do=savescore, success="+success+" sendlv.arcadegid="+sendlv.arcadegid+" sendlv.gscore="+sendlv.gscore+" sendlv.gname="+sendlv.gname+" sendlv.enscore="+sendlv.enscore+"\n";
-						sendlv.send("index.php?autocom=arcade&do=savescore", "_self", "POST");
+						sendlv.send("index.php?autocom=arcade&do=savescore", (_root.cunitescoreInstance.DEBUGFIELD ? "_blank":"_self"), "POST");
 					}
 				}
 			};
@@ -311,14 +311,19 @@ class unitescore.CUniteScoreAS2 {
 	private function getIPBgname():String {
 		var ret:String = "";
 		var str0:String = "";
-		var lastSlashIdx:Number = (urlOrig.lastIndexOf("\\") + 1);
+		var firstInterIdx:Number = urlOrig.indexOf("?");
+		var cutUrl:String;
+		if (firstInterIdx > -1) cutUrl = urlOrig.substr(0, firstInterIdx);
+		else cutUrl = urlOrig;
+			
+		var lastSlashIdx:Number = (cutUrl.lastIndexOf("\\") + 1);
 		if ((lastSlashIdx == -1) || (lastSlashIdx == 0)) {
-			lastSlashIdx = urlOrig.lastIndexOf("/") + 1;
+			lastSlashIdx = cutUrl.lastIndexOf("/") + 1;
 		}
 		var parseIdx:Number = lastSlashIdx;
-		var urlLength:Number = urlOrig.length;
+		var urlLength:Number = cutUrl.length;
 		while (parseIdx < urlLength) {
-			str0 = urlOrig.charAt(parseIdx);
+			str0 = cutUrl.charAt(parseIdx);
 			if (str0 == ".") {
 			   break;
 			}
