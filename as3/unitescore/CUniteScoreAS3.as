@@ -241,124 +241,133 @@ package unitescore {
 			var urlVars:URLVariables;
 			var urlLoader:URLLoader;
 			var loader:Loader;
+			var res:Object;
 			
 			if (DEBUGFIELD) DEBUGFIELD.appendText( "sendScore score=" + score + " category=" + category + "\n" );
 
-			if (url.indexOf("pepere.org") > -1) {
-				if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
-			} else if (url.indexOf("jeuxgratuits.net") > -1) {
-				ExternalInterface.call("flashScoreService", score, category);
-			} else if (url.indexOf("mindjolt.com") > -1) {
-				if (!mindJoltAPI) return;
-				if (category == mainScoreCategory) mindJoltAPI.service.submitScore(score);
-				else mindJoltAPI.service.submitScore(score, category);
-			} else if (url.indexOf("kongregate.com") > -1) {
-				if (!kongregateAPI) return;
-				if (category == mainScoreCategory) kongregateAPI.scores.submit(score);
-				else kongregateAPI.scores.submit(score, category);
-			} else if (url.indexOf("nonoba.com") > -1) {
-				var nonoba_key:String;
-				//On nonoba.com you have to create a highscore for your game. Set the key to "totalscores" for your main score.
-				if (category == mainScoreCategory) {
-					nonoba_key = "totalscores";
-				} else {
-					//remove ' ' and '-' characters from the category name
-					nonoba_key = category.split(' ').join('').split('-').join('').toLowerCase();
-				}
-				NonobaAPI.SubmitScore(theroot.stage, nonoba_key, score, function(response:String){
-					switch(response){
-						case NonobaAPI.SUCCESS:{ trace("The Nonoba score was submitted successfully"); break; }
-						case NonobaAPI.NOT_LOGGED_IN: { trace("The Nonoba user is not logged in"); break; }
-						case NonobaAPI.ERROR: { trace("A Nonoba error occurred."); break; }
+			try {
+				if (url.indexOf("pepere.org") > -1) {
+					if (category == mainScoreCategory) {
+						res = ExternalInterface.call("saveGlobalScore", score);
+						if (DEBUGFIELD) DEBUGFIELD.appendText( "sendScore ExternalInterface.call res=" + res + "\n" );
 					}
-				});
-			} else if (url.indexOf("gamebrew.com") > -1) {
-				if (category == mainScoreCategory) {
-					try {sendLocalConnection.send("gbapi", "scoreSubmit", score); } catch (error:ArgumentError) {}
-				}
-			} else if ( (url.indexOf("gr8games.eu") > -1) || (url.indexOf("e-gierki.com") > -1) ) {
-				if (category == mainScoreCategory) {
-					try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score); } catch (error:ArgumentError) {}
-				} else {
-					try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score, category); } catch (error:ArgumentError) {}
-				}
-			} else if (url.indexOf("bubblebox.com") > -1) {
-				if (category == mainScoreCategory) {
-					if (apiGUI != null) {
-						showScoreGUI();
-						try { sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore); } catch (error:ArgumentError) {}
+				} else if (url.indexOf("jeuxgratuits.net") > -1) {
+					res = ExternalInterface.call("flashScoreService", score, category);
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "sendScore ExternalInterface.call res=" + res + "\n" );
+				} else if (url.indexOf("mindjolt.com") > -1) {
+					if (!mindJoltAPI) return;
+					if (category == mainScoreCategory) mindJoltAPI.service.submitScore(score);
+					else mindJoltAPI.service.submitScore(score, category);
+				} else if (url.indexOf("kongregate.com") > -1) {
+					if (!kongregateAPI) return;
+					if (category == mainScoreCategory) kongregateAPI.scores.submit(score);
+					else kongregateAPI.scores.submit(score, category);
+				} else if (url.indexOf("nonoba.com") > -1) {
+					var nonoba_key:String;
+					//On nonoba.com you have to create a highscore for your game. Set the key to "totalscores" for your main score.
+					if (category == mainScoreCategory) {
+						nonoba_key = "totalscores";
 					} else {
-						//trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
-						apiGUIParams = { w:400, h:200 }; //size of the GUI
-						pendingScore = score; // to be used once the bubblebox component is loaded
-						urlVars = new URLVariables();
-						urlVars.bubbleboxGameID = gameParams.bubbleboxGameID;
-						
-						loadScoreGUI(gameParams.bubbleboxApiPath, urlVars, bubbleboxComplete);
+						//remove ' ' and '-' characters from the category name
+						nonoba_key = category.split(' ').join('').split('-').join('').toLowerCase();
 					}
-				}
-			} else if (url.indexOf("gamegarage.co.uk") > -1) {
-				if (category == mainScoreCategory) {
-					if (apiGUI != null) {
-						showScoreGUI();
-						try { sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore); } catch (error:ArgumentError) {}
+					NonobaAPI.SubmitScore(theroot.stage, nonoba_key, score, function(response:String){
+						switch(response){
+							case NonobaAPI.SUCCESS:{ trace("The Nonoba score was submitted successfully"); break; }
+							case NonobaAPI.NOT_LOGGED_IN: { trace("The Nonoba user is not logged in"); break; }
+							case NonobaAPI.ERROR: { trace("A Nonoba error occurred."); break; }
+						}
+					});
+				} else if (url.indexOf("gamebrew.com") > -1) {
+					if (category == mainScoreCategory) {
+						try {sendLocalConnection.send("gbapi", "scoreSubmit", score); } catch (error:ArgumentError) {}
+					}
+				} else if ( (url.indexOf("gr8games.eu") > -1) || (url.indexOf("e-gierki.com") > -1) ) {
+					if (category == mainScoreCategory) {
+						try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score); } catch (error:ArgumentError) {}
 					} else {
-						trace("gameParams.gamegarageApiPath=" + gameParams.gamegarageApiPath + " gameParams.game_id=" + gameParams.game_id+ " gameParams.user_id=" + gameParams.user_id);
-						apiGUIParams = { w:550, h:400 }; //size of the GUI
-						pendingScore = score; // to be used once the gamegarage component is loaded
-						urlVars = new URLVariables();
-						urlVars.game_id = gameParams.game_id;
-						if (gameParams.user_id) urlVars.user_id = gameParams.user_id;
-						
-						loadScoreGUI(gameParams.gamegarageApiPath, urlVars, gamegarageComplete);
+						try {sendLocalConnection.send(gameParams.gr8games_api, "submitScore", score, category); } catch (error:ArgumentError) {}
 					}
-				}
-			} else if ( (url.indexOf("games-garden.com") > -1) && (gameParams.isUser == "1") && (gameParams.gname) ) {
-				//games-garden.com (derived from ibProArcade system)
-				if (category == mainScoreCategory) {
-					//urlRequest = new URLRequest("http://localhost:8080/cunitescore/index.php?act=Arcade&do=newscore"); //for local testings
-					urlRequest = new URLRequest("http://www.games-garden.com/index.php?act=Arcade&do=newscore");
+				} else if (url.indexOf("bubblebox.com") > -1) {
+					if (category == mainScoreCategory) {
+						if (apiGUI != null) {
+							showScoreGUI();
+							try { sendLocalConnection.send("bubbleboxRcvApi" + gameParams.bubbleboxGameID, "sendScore", pendingScore); } catch (error:ArgumentError) {}
+						} else {
+							//trace("gameParams.bubbleboxApiPath=" + gameParams.bubbleboxApiPath + " gameParams.bubbleboxGameID=" + gameParams.bubbleboxGameID);
+							apiGUIParams = { w:400, h:200 }; //size of the GUI
+							pendingScore = score; // to be used once the bubblebox component is loaded
+							urlVars = new URLVariables();
+							urlVars.bubbleboxGameID = gameParams.bubbleboxGameID;
+							
+							loadScoreGUI(gameParams.bubbleboxApiPath, urlVars, bubbleboxComplete);
+						}
+					}
+				} else if (url.indexOf("gamegarage.co.uk") > -1) {
+					if (category == mainScoreCategory) {
+						if (apiGUI != null) {
+							showScoreGUI();
+							try { sendLocalConnection.send("gamegarageRcvApi" + gameParams.game_id, "sendScore", pendingScore); } catch (error:ArgumentError) {}
+						} else {
+							trace("gameParams.gamegarageApiPath=" + gameParams.gamegarageApiPath + " gameParams.game_id=" + gameParams.game_id+ " gameParams.user_id=" + gameParams.user_id);
+							apiGUIParams = { w:550, h:400 }; //size of the GUI
+							pendingScore = score; // to be used once the gamegarage component is loaded
+							urlVars = new URLVariables();
+							urlVars.game_id = gameParams.game_id;
+							if (gameParams.user_id) urlVars.user_id = gameParams.user_id;
+							
+							loadScoreGUI(gameParams.gamegarageApiPath, urlVars, gamegarageComplete);
+						}
+					}
+				} else if ( (url.indexOf("games-garden.com") > -1) && (gameParams.isUser == "1") && (gameParams.gname) ) {
+					//games-garden.com (derived from ibProArcade system)
+					if (category == mainScoreCategory) {
+						//urlRequest = new URLRequest("http://localhost:8080/cunitescore/index.php?act=Arcade&do=newscore"); //for local testings
+						urlRequest = new URLRequest("http://www.games-garden.com/index.php?act=Arcade&do=newscore");
+						urlVars = new URLVariables();
+						urlVars.gname = gameParams.gname;
+						urlVars.gscore = score;
+						
+						if (DEBUGFIELD) DEBUGFIELD.appendText( "http://www.games-garden.com/index.php?act=Arcade&do=newscore POST gname=" + urlVars.gname + " gscore=" + urlVars.gscore + "\n" );
+						
+						urlRequest.method = URLRequestMethod.POST;
+						urlRequest.data = urlVars;
+						/*
+						urlLoader = new URLLoader();
+						urlLoader.load(urlRequest);
+						*/
+						navigateToURL(urlRequest, (DEBUGFIELD ? "_blank":"_self"));
+					}
+				/*
+				} else if (ibProArcadeGameName != null) {
+					urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
 					urlVars = new URLVariables();
-					urlVars.gname = gameParams.gname;
+					urlVars.gname = ibProArcadeGameName; //ibProArcadeGameName must be initialized with the method initIbProArcade
 					urlVars.gscore = score;
-					
-					if (DEBUGFIELD) DEBUGFIELD.appendText( "http://www.games-garden.com/index.php?act=Arcade&do=newscore POST gname=" + urlVars.gname + " gscore=" + urlVars.gscore + "\n" );
-					
 					urlRequest.method = URLRequestMethod.POST;
 					urlRequest.data = urlVars;
-					/*
+					navigateToURL(urlRequest, "_self");
+					
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n" );
+				*/
+				} else if (ipb_compatible) {
+					if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPB score submit\n" );
+					pendingScore = score;
+					
+					urlRequest = new URLRequest("index.php?autocom=arcade&do=verifyscore");
+					urlRequest.method = URLRequestMethod.POST;
 					urlLoader = new URLLoader();
+					//urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES; //The format of the page returned by this request is compatible with AS2 url vars but not with AS3 URLVariables.
+					urlLoader.addEventListener(Event.COMPLETE, IPBArcadeCheatComplete);
 					urlLoader.load(urlRequest);
-					*/
-					navigateToURL(urlRequest, (DEBUGFIELD ? "_blank":"_self"));
+				} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
+					// Default score submittion is mochiads leaderboards
+					if (category == mainScoreCategory) {
+						MochiScores.showLeaderboard( { boardID: mochiadsBoardID, score: score } );
+					}
 				}
-			/*
-			} else if (ibProArcadeGameName != null) {
-				urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
-				urlVars = new URLVariables();
-				urlVars.gname = ibProArcadeGameName; //ibProArcadeGameName must be initialized with the method initIbProArcade
-				urlVars.gscore = score;
-				urlRequest.method = URLRequestMethod.POST;
-				urlRequest.data = urlVars;
-				navigateToURL(urlRequest, "_self");
-				
-				if (DEBUGFIELD) DEBUGFIELD.appendText( "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n" );
-			*/
-			} else if (ipb_compatible) {
-				if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPB score submit\n" );
-				pendingScore = score;
-				
-				urlRequest = new URLRequest("index.php?autocom=arcade&do=verifyscore");
-				urlRequest.method = URLRequestMethod.POST;
-				urlLoader = new URLLoader();
-				//urlLoader.dataFormat = URLLoaderDataFormat.VARIABLES; //The format of the page returned by this request is compatible with AS2 url vars but not with AS3 URLVariables.
-				urlLoader.addEventListener(Event.COMPLETE, IPBArcadeCheatComplete);
-				urlLoader.load(urlRequest);
-			} else if ((mochiadsGameID != null) && (mochiadsBoardID != null)) {
-				// Default score submittion is mochiads leaderboards
-				if (category == mainScoreCategory) {
-					MochiScores.showLeaderboard( { boardID: mochiadsBoardID, score: score } );
-				}
+			} catch (e:Error) {
+				if (DEBUGFIELD) DEBUGFIELD.appendText( "An exception occured during sendScore : " + e + "\n" );
 			}
 		}
 		
