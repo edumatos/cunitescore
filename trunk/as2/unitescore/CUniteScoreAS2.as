@@ -217,6 +217,12 @@ class unitescore.CUniteScoreAS2 {
 		} else if (url.indexOf("pepere.org") > -1) {
 			//pepere.org
 			if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
+		} else if (url.indexOf("xpogames.com") > -1) {
+			//pepere.org
+			if (category == mainScoreCategory) {
+				getURL("javascript:setScore("+score+"); void(0);", "_self");
+				getURL("javascript:endGame(); void(0);", "_self");
+			}
 		} else if (url.indexOf("jeuxgratuits.net") > -1) {
 			//jeuxgratuits.net
 			ExternalInterface.call("flashScoreService", score, category);
