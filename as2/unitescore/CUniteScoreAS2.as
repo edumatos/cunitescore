@@ -216,7 +216,10 @@ class unitescore.CUniteScoreAS2 {
 			}
 		} else if (url.indexOf("pepere.org") > -1) {
 			//pepere.org
-			if (category == mainScoreCategory) ExternalInterface.call("saveGlobalScore", score);
+			if (category == mainScoreCategory) {
+				//ExternalInterface.call("saveGlobalScore", score); //Bug for VC ExternalInterface Firefox https://www.mochiads.com/community/forum/topic/version-cnotrol-externalinterface-firefow-ko
+				sendLocalConnection.send("pepereRcvApi"+_root.pepereGameID, "sendScore", score);
+			}
 		} else if (url.indexOf("xpogames.com") > -1) {
 			//pepere.org
 			if (category == mainScoreCategory) {
@@ -317,9 +320,9 @@ class unitescore.CUniteScoreAS2 {
 	private function getIPBgname():String {
 		var ret:String = "";
 		var str0:String = "";
-		var firstInterIdx:Number = urlOrig.indexOf("?");
+		var firstInterIdx:Number = urlOrig.indexOf(".swf");
 		var cutUrl:String;
-		if (firstInterIdx > -1) cutUrl = urlOrig.substr(0, firstInterIdx);
+		if (firstInterIdx > -1) cutUrl = urlOrig.substr(0, firstInterIdx+4);
 		else cutUrl = urlOrig;
 			
 		var lastSlashIdx:Number = (cutUrl.lastIndexOf("\\") + 1);

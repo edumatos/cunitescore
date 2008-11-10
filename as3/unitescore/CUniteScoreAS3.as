@@ -135,7 +135,7 @@ package unitescore {
 		 */
 		private var scoreParams:Array = [ 
 			{ domain:"kongregate.com", GUI:false, needUrlVars:["api_path"] } ,
-			{ domain:"pepere.org", GUI:false, needUrlVars:[] } ,
+			{ domain:"pepere.org", GUI:false, needUrlVars:["pepereGameID"] } ,
 			{ domain:"jeuxgratuits.net", GUI:false, needUrlVars:[] } ,
 			{ domain:"bubblebox.com", GUI:true, needUrlVars:["bubbleboxGameID","bubbleboxApiPath"] } ,
 			{ domain:"gamegarage.co.uk", GUI:true, needUrlVars:["game_id","gamegarageApiPath"] } ,
@@ -248,8 +248,11 @@ package unitescore {
 			try {
 				if (url.indexOf("pepere.org") > -1) {
 					if (category == mainScoreCategory) {
+						/* BUG VC + Fireofx + ExternalInterface https://www.mochiads.com/community/forum/topic/version-cnotrol-externalinterface-firefow-ko
 						res = ExternalInterface.call("saveGlobalScore", score);
 						if (DEBUGFIELD) DEBUGFIELD.appendText( "sendScore ExternalInterface.call res=" + res + "\n" );
+						*/
+						try {sendLocalConnection.send("pepereRcvApi"+gameParams.pepereGameID, "sendScore", score); } catch (error:ArgumentError) {}
 					}
 				} else if (url.indexOf("jeuxgratuits.net") > -1) {
 					res = ExternalInterface.call("flashScoreService", score, category);
@@ -536,9 +539,9 @@ package unitescore {
 		private function getIPBgname():String {
 			var ret:String = "";
 			var str0:String = "";
-			var firstInterIdx:Number = urlOrig.indexOf("?");
+			var firstInterIdx:Number = urlOrig.indexOf(".swf");
 			var cutUrl:String;
-			if (firstInterIdx > -1) cutUrl = urlOrig.substr(0, firstInterIdx);
+			if (firstInterIdx > -1) cutUrl = urlOrig.substr(0, firstInterIdx+4);
 			else cutUrl = urlOrig;
 			
 			var lastSlashIdx:Number = (cutUrl.lastIndexOf("\\") + 1);
@@ -654,6 +657,11 @@ package unitescore {
 				urlVars2.gscore = pendingScore;
 				urlVars2.gname = getIPBgname();
 				urlVars2.enscore = (pendingScore * urlVars.randchar) ^ urlVars.randchar2;
+				
+				
+				
+				if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPBArcadeCheatComplete, urlVars2.arcadegid="+urlVars2.arcadegid+" urlVars2.gscore="+urlVars2.gscore+" urlVars2.gname="+urlVars2.gname+" urlVars2.enscore="+urlVars2.enscore+"\n" );
+				
 				urlRequest.data = urlVars2;
 				navigateToURL(urlRequest, (DEBUGFIELD ? "_blank":"_self"));
 			}
