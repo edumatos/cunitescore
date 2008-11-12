@@ -1,10 +1,10 @@
 #summary List of Games implementing cUniteScore classes.
 
-  * Slippery Side Swipe [http://games-garden.com/58-Slippery-Side-Swipe.html play] [http://cdn.mochiads.com/c/g/slippery-side-swipe.zip zip] / [http://overloadstudios.co.uk/temp/game_slippery-side-swipe.tar download tar]
+  * Slippery Side Swipe [http://games-garden.com/58-Slippery-Side-Swipe.html play] [http://cdn.mochiads.com/c/g/slippery-side-swipe.zip download zip] / [http://overloadstudios.co.uk/temp/game_slippery-side-swipe.tar download tar]
   * Mega Fortress [http://www.pepere.org/flash-development_1_3x/flash-game-mega-fortress_u_186.html play]
   * Spider in the rain [http://www.pepere.org/programmation-flash_0_3x/jeu-flash-spider-the-rain_u_185.html play] [http://games.mochiads.com/c/g/spider-in-the-rain.zip download]
   * Pawel and the Teutonic Castle [http://www.games-garden.com/59-Pawel-and-the-Teutonic-Castle.html play] [http://games.mochiads.com/c/g/pawel-the-teutonic-castle.zip download zip] / [http://overloadstudios.co.uk/temp/game_pawel-teutonic-castle.tar download tar]  
   * Pumpkin Sweeper [http://games-garden.com/309-Pumpkin-Sweeper.html play] [http://cdn.mochiads.com/c/g/pumpkin-sweeper.zip download zip] / [http://overloadstudios.co.uk/temp/game_pumpkin-sweeper.tar download tar]  
   * Rolling Turtle : [http://www.pepere.org/flash-development_1_3x/flash-game-rolling-turtle_u_171.html play] [http://games.mochiads.com/c/g/rolling-turtle.zip download]
   * BLockoban [http://www.pepere.org/flash-development_1_3x/flash-game-blockoban_u_158.html play] [http://cdn.mochiads.com/c/g/blockoban-88.zip download]
-  * Blitzkrieg [http://games-garden.com/109-Blitzkrieg.html play] [http://cdn.mochiads.com/c/g/blitzkrieg.zip zip] / [http://overloadstudios.co.uk/temp/game_blitzkrieg.tar download tar]
+  * Blitzkrieg [http://games-garden.com/109-Blitzkrieg.html play] [http://cdn.mochiads.com/c/g/blitzkrieg.zip download zip] / [http://overloadstudios.co.uk/temp/game_blitzkrieg.tar download tar]
