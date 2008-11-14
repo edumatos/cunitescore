@@ -1,5 +1,6 @@
 #summary List of Games implementing cUniteScore classes.
 
+  * Crossed Wires [http://games-garden.com/56-Crossed-Wires.html play] [http://cdn.mochiads.com/c/g/crossed-wires.zip download zip] / [http://overloadstudios.co.uk/temp/game_crossed-wires.tar download tar]
   * Slippery Side Swipe [http://games-garden.com/58-Slippery-Side-Swipe.html play] [http://cdn.mochiads.com/c/g/slippery-side-swipe.zip download zip] / [http://overloadstudios.co.uk/temp/game_slippery-side-swipe.tar download tar]
   * Mega Fortress [http://www.pepere.org/flash-development_1_3x/flash-game-mega-fortress_u_186.html play]
   * Spider in the rain [http://www.pepere.org/programmation-flash_0_3x/jeu-flash-spider-the-rain_u_185.html play] [http://games.mochiads.com/c/g/spider-in-the-rain.zip download]
