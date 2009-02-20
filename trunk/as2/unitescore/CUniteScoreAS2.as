@@ -11,7 +11,7 @@
  * import unitescore.CUniteScoreAS2;
  * var scoreSubmitter : CUniteScoreAS2 = new CUniteScoreAS2();
  * 
- * //Optional init, XXX = mochiadID, YYY = boardID, ZZZ = game name.
+ * //Optional init, XXX = mochiadID, YYY = boardID.
  * scoreSubmitter.initMochiAdsLeaderboard("XXX","YYY");
  * 
  * //In game over :
@@ -363,7 +363,7 @@ class unitescore.CUniteScoreAS2 {
 				lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/tracking.php", lv, "POST");
 			}
 		} else if ((urlOrig.indexOf("/arcade/") > -1) || (urlOrig.indexOf("/Games/") > -1)) {
-			// There is a chance we are on a IPBArcade V32 compatible site, we try to load .txt file to be sure
+			// There is a chance we are on an IPBArcade V32 compatible site, we try to load .txt file to be sure
 			lv = new LoadVars();
 			lv.onLoad = function (success) {
 				if (_root.cunitescoreInstance.DEBUGFIELD) _root.cunitescoreInstance.DEBUGFIELD.text += "CUniteScoreAS2 IPB init, success="+success+" this.scoreVar="+this.scoreVar+"\n";
