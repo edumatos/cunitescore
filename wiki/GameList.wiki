@@ -1,4 +1,7 @@
 #summary List of Games implementing cUniteScore classes.
+  * The Elephant game [http://www.pepere.org/flash-game_1_x/the-elephant-game_7.html play] [http://cdn.mochiads.com/c/g/the-elephant-game.zip download zip]
+  * The Bilboquet game [http://www.pepere.org/flash-development_1_3x/flash-game-bilboquet-game_u_4.html play] [http://cdn.mochiads.com/c/g/the-bilboquet-game.zip download zip]
+  * Jump Gear 2 [http://www.pepere.org/flash-development_1_3x/flash-game-jump-gear_u_177.html play] [http://cdn.mochiads.com/c/g/jump-gear-2_v1.zip download zip]
   * Interstellar Storm 2 [http://games-garden.com/436-Interstellar-Storm-2.html play] [http://cdn.mochiads.com/c/g/interstellar-storm-2.zip download zip]
   * Roachilicious [http://games-garden.com/346-Roachilicious.html play] [http://cdn.mochiads.com/c/g/roachilicious.zip download zip]
   * Interstellar Storm [http://games-garden.com/110-Interestellar-Storm.html play] [http://games.mochiads.com/c/g/interestellar-storm.zip download zip] / [http://overloadstudios.co.uk/temp/game_interstellar-storm.tar download tar]
