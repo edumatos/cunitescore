@@ -75,11 +75,15 @@ class unitescore.CUniteScoreAS2 {
 	 */
 	private var scoreGUI:MovieClip;
 
-	
+	/**
+	 * MindJolt
+	 */
+	private var MindJoltAPI:MovieClip;
+	 
 	/**
 	 * Constructor
 	 * @param	debugField : Debug TextField to toggle on the debug traces. undefined to not output the traces.
-	 * @param	urlDebug : To simulate a swf hosting url. Exple "kongregate.com".
+	 * @param	urlDebug : To simulate a swf hosting url. Eg "kongregate.com".
 	 * @param	paramsDebug : To simulate a list of url parameters (flash vars) passed to the game swf.
 	 */
 	public function CUniteScoreAS2(debugField:TextField, urlDebug:String, paramsDebug:Object ) {
@@ -177,8 +181,15 @@ class unitescore.CUniteScoreAS2 {
 			} else {
 				sendLocalConnection.send("spapi", "sendScore", score, category);
 			}
-		} else if ((url.indexOf("mindjolt") > -1)||(url.indexOf("thisarcade.com") > -1)) {
-			//mindjolt.com & thisarcade.com
+		} else if (url.indexOf("mindjolt") > -1){
+			//mindjolt.com 
+			if (category == mainScoreCategory) {
+				MindJoltAPI.service.submitScore(score);
+			} else {
+				MindJoltAPI.service.submitScore(score, category);
+			}
+		} else if (url.indexOf("thisarcade.com") > -1) {
+			//thisarcade.com
 			if (category == mainScoreCategory) {
 				sendLocalConnection.send(_root.com_mindjolt_api, "submitScore", score);
 			} else {
@@ -190,19 +201,6 @@ class unitescore.CUniteScoreAS2 {
 			//hallpass.com
 			_root.HPScoreService.postScore(score, category);
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
-			//gamegarage.co.uk
-			/* Old way, for members only and without GUI, never tested
-			if ((_root.game_id != undefined) && (_root.user_id != undefined)) {
-				if (category == mainScoreCategory) {
-					var lv:LoadVars = new LoadVars();
-					lv.game_id = _root.game_id;
-					lv.user_id = _root.user_id;
-					lv.score = score;
-					lv.alg = _root.game_id + _root.user_id + score + "a83l9xj";
-					lv.sendAndLoad("http://www.gamegarage.co.uk/scripts/score.php", lv, "POST");
-				}
-			}
-			*/
 			if ((_root.gamegarageApiPath != undefined) && (_root.game_id != undefined) && (category == mainScoreCategory)) {
 				_root.unitescorePendingScore = score; // to be used once the bubblebox component is loaded
 				_root.unitescoreSendScoreMethod = gamegarageSendScore;
@@ -250,12 +248,6 @@ class unitescore.CUniteScoreAS2 {
 			}
 		} else if (url.indexOf("z-fox.com") > -1) {
 			if (category == mainScoreCategory) _root.sendScore(score);
-		} else if ((url.indexOf("games-garden.com") > -1) && (_root.isUser == "1")) {
-			//games-garden.com (derived from ibProArcade system)
-			if (category == mainScoreCategory) {
-				_root.gscore = score;
-				getURL("index.php?act=Arcade&do=newscore", (DEBUGFIELD ? "_blank":"_self"), "POST");
-			}
 		} else if ((_root.ipb_compatible == true)) {
 			//IPB arcade, latest and anticheat version
 			if (DEBUGFIELD) DEBUGFIELD.text += "\nCUniteScoreAS2 IPB score submit\n";
@@ -354,6 +346,23 @@ class unitescore.CUniteScoreAS2 {
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateServices=" + _root.kongregateServices + "\n";
 			_root.kongregateServices.connect();
 			if (DEBUGFIELD) DEBUGFIELD.text += "CUniteScoreAS2 _root.kongregateServices.connect()\n";
+		} else if (url.indexOf("mindjolt") > -1) {
+			// mindjolt
+			if (MindJoltAPI == undefined) {
+			  System.security.allowDomain("static.mindjolt.com");
+			  MindJoltAPI = createEmptyMovieClip("MindJoltAPI", getNextHighestDepth());
+			  var apiPath:String = _level0["mjPath"] || "http://static.mindjolt.com/api/as2/api_as2_local.swf";
+			  var apiLoader:MovieClipLoader = new MovieClipLoader();
+			  // create some listener functions to be called after our API is loaded
+			  var apiLoadListener = new Object();
+			  apiLoader.addListener(apiLoadListener);
+			  apiLoadListener.onLoadInit = function() { MindJoltAPI.service.connect(postMindJoltAPIConnect); }
+			  apiLoadListener.onLoadError = function() { trace("[MindJoltAPI] failed to load."); }
+
+			  // now load the API
+			  apiLoader.loadClip(apiPath, MindJoltAPI);
+			}
+
 		} else if (url.indexOf("gamegarage.co.uk") > -1) {
 			// Gamegarage.co.uk init (tracking code)
 			if (_root.game_id != undefined && _root.user_id != undefined) {
@@ -406,5 +415,12 @@ class unitescore.CUniteScoreAS2 {
 		this = _root._cuniscoreContext;
 		clearInterval(interval);
 		sendLocalConnection.send("gamegarageRcvApi" + _root.game_id, "sendScore", _root.unitescorePendingScore);
+	}
+	
+	/**
+	 * Mindjolt. This function is called after everything has been successfully loaded
+	 */
+	private function postMindJoltAPIConnect (success:Boolean) {  
+	  trace("[MindJoltAPI] service successfully loaded"); 
 	}
 }
