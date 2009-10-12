@@ -143,8 +143,7 @@ package unitescore {
 			{ domain:"mindjolt.com", GUI:false, needUrlVars:["mjPath"] } ,
 			{ domain:"gr8games.eu", GUI:false, needUrlVars:["gr8games_api"] } ,
 			{ domain:"e-gierki.com", GUI:false, needUrlVars:["gr8games_api"] } ,
-			{ domain:"gamebrew.com", GUI:false, needUrlVars:[] } ,
-			{ domain:"games-garden.com", GUI:true, needUrlVars:["isUser","gname"] } //not really powered by GUI, but a score submission is reloading the page
+			{ domain:"gamebrew.com", GUI:false, needUrlVars:[] }
 		];
 
 		public static var theroot:MovieClip;
@@ -322,37 +321,6 @@ package unitescore {
 							loadScoreGUI(gameParams.gamegarageApiPath, urlVars, gamegarageComplete);
 						}
 					}
-				} else if ( (url.indexOf("games-garden.com") > -1) && (gameParams.isUser == "1") && (gameParams.gname) ) {
-					//games-garden.com (derived from ibProArcade system)
-					if (category == mainScoreCategory) {
-						//urlRequest = new URLRequest("http://localhost:8080/cunitescore/index.php?act=Arcade&do=newscore"); //for local testings
-						urlRequest = new URLRequest("http://www.games-garden.com/index.php?act=Arcade&do=newscore");
-						urlVars = new URLVariables();
-						urlVars.gname = gameParams.gname;
-						urlVars.gscore = score;
-						
-						if (DEBUGFIELD) DEBUGFIELD.appendText( "http://www.games-garden.com/index.php?act=Arcade&do=newscore POST gname=" + urlVars.gname + " gscore=" + urlVars.gscore + "\n" );
-						
-						urlRequest.method = URLRequestMethod.POST;
-						urlRequest.data = urlVars;
-						/*
-						urlLoader = new URLLoader();
-						urlLoader.load(urlRequest);
-						*/
-						navigateToURL(urlRequest, (DEBUGFIELD ? "_blank":"_self"));
-					}
-				/*
-				} else if (ibProArcadeGameName != null) {
-					urlRequest = new URLRequest("index.php?act=Arcade&do=newscore");
-					urlVars = new URLVariables();
-					urlVars.gname = ibProArcadeGameName; //ibProArcadeGameName must be initialized with the method initIbProArcade
-					urlVars.gscore = score;
-					urlRequest.method = URLRequestMethod.POST;
-					urlRequest.data = urlVars;
-					navigateToURL(urlRequest, "_self");
-					
-					if (DEBUGFIELD) DEBUGFIELD.appendText( "request index.php?act=Arcade&do=newscore POST gscore=" + score + " gname=" + ibProArcadeGameName+"\n" );
-				*/
 				} else if (ipb_compatible) {
 					if (DEBUGFIELD) DEBUGFIELD.appendText( "CUniteScoreAS3 IPB score submit\n" );
 					pendingScore = score;
@@ -408,7 +376,7 @@ package unitescore {
 				}
 			}
 			
-			//A logo class has been found, we have a log for this portal.
+			//A logo class has been found, we have a logo for this portal.
 			if (logoClass) {
 				//Embed in try catch in case the logo is not a MovieClip ?
 				try {

@@ -2,8 +2,11 @@
 * MochiServices
 * Connection class for all MochiAds Remote Services
 * @author Mochi Media+
-* @version 3.0
 */
+
+import unitescore.mochi.MochiEvents;
+import unitescore.mochi.MochiSync;
+import unitescore.mochi.MochiCoins;
 
 class unitescore.mochi.MochiServices {
 
@@ -12,44 +15,48 @@ class unitescore.mochi.MochiServices {
     private static var _clip:MovieClip;
     private static var _loader:MovieClipLoader;
     private static var _loaderListener:Object;
+
+    private static var _servURL:String = "http://www.mochiads.com/static/lib/services/"
+    private static var _services:String = "services.swf";
+    private static var _mochiLC:String = "MochiLC.swf";
     
-    private static var _servicesURL:String = "http://www.mochiads.com/static/lib/services/services.swf";
     private static var _swfVersion:String;
-    
+
     private static var _listenChannel:Object;
     private static var _listenChannelName:String = "__ms_";
     private static var _sendChannel:Object;
     private static var _sendChannelName:String;
-    
+
     private static var _connecting:Boolean = false;
     private static var _connected:Boolean = false;
-    
+
     public static var netup:Boolean = true;
     public static var netupAttempted:Boolean = false;
-    
+
     public static var onError:Object;
-    
+    public static var servicesSync:MochiSync = new MochiSync();
+
     //
     public static function get id ():String {
         return _id;
     }
-    
+
     //
     public static function get clip ():MovieClip {
         return _container;
     }
-    
+
     //
     public static function get childClip ():Object {
         return _clip;
     }
-    
+
     //
     //
     static function getVersion():String {
-        return "3.0";
+        return "3.3 as2";
     }
-    
+
     //
     //
     private static function allowDomains(server:String):String {
@@ -66,7 +73,7 @@ class unitescore.mochi.MochiServices {
         }
         return hostname;
     }
-    
+
     //
     public static function get isNetworkAvailable():Boolean {
         if (System.security) {
@@ -77,7 +84,7 @@ class unitescore.mochi.MochiServices {
         }
         return true;
     }
-    
+
     //
     public static function set comChannelName(val:String):Void {
         if (val != undefined) {
@@ -87,12 +94,12 @@ class unitescore.mochi.MochiServices {
             }
         }
     }
-    
+
     //
     public static function get connected ():Boolean {
         return _connected;
     }
-    
+
     /**
      * Method: connect
      * Connects your game to the MochiServices API
@@ -101,10 +108,11 @@ class unitescore.mochi.MochiServices {
      * @param   onError a function to call upon connection or IO error
      */
     public static function connect (id:String, clip:MovieClip, onError:Object):Void {
+        warnID( id, false );
         if (!_connected && _clip == undefined) {
             trace("MochiServices Connecting...");
             _connecting = true;
-            init(id, clip); 
+            init(id, clip);
         }
         if (onError != undefined) {
             MochiServices.onError = onError;
@@ -112,7 +120,7 @@ class unitescore.mochi.MochiServices {
             MochiServices.onError = function (errorCode:String):Void { trace(errorCode); };
         }
     }
-    
+
     //
     //
     public static function disconnect ():Void {
@@ -126,7 +134,7 @@ class unitescore.mochi.MochiServices {
             _listenChannel.close();
         }
     }
-    
+
     //
     //
     private static function init (id:String, clip:MovieClip):Void {
@@ -138,44 +146,46 @@ class unitescore.mochi.MochiServices {
         }
         loadCommunicator(id, _container);
     }
-    
+
     //
     //
     private static function loadCommunicator (id:String, clip:MovieClip):MovieClip {
-        
         var clipname:String = '_mochiservices_com_' + id;
-        
+        var _loader:MovieClipLoader = new MovieClipLoader();
+        var _loaderListener:Object = {};
+
         if (_clip != null) {
             return _clip;
         }
-        
+
         if (!MochiServices.isNetworkAvailable) {
             return null;
         }
         
-        if (urlOptions().servicesURL != undefined) {
-            _servicesURL = urlOptions().servicesURL;
+        if (urlOptions().servURL) {
+            _servURL = urlOptions().servURL;
         }
-                
-        MochiServices.allowDomains(_servicesURL);
+        var servicesURL:String = _servURL + _services;
         
+        if (urlOptions().servicesURL) {
+            servicesURL = urlOptions().servicesURL;
+        }
+
+        MochiServices.allowDomains(servicesURL);
+
         _clip = clip.createEmptyMovieClip(clipname, 10336, false);
-        
+
         _listenChannelName += Math.floor((new Date()).getTime()) + "_" + Math.floor(Math.random() * 99999);
-        
+
         // load com swf into container
         listen();
-        _loader = new MovieClipLoader();
-        if (_loaderListener.waitInterval != null) clearInterval(_loaderListener.waitInterval);
-        _loaderListener = {};
-        _loaderListener.onLoadError = function (target_mc:MovieClip, errorCode:String, httpStatus:Number):Void { 
-            trace("MochiServices could not load.");
-            MochiServices.disconnect();
-            MochiServices.onError.apply(null, [errorCode]);
-        };
+        if (_loaderListener.waitInterval != null) 
+            clearInterval(_loaderListener.waitInterval);
+            
+        _loaderListener.onLoadError = loadError;
         _loaderListener.onLoadStart = function (target_mc:MovieClip):Void { this.isLoading = true; }
         _loaderListener.startTime = getTimer();
-        _loaderListener.wait = function ():Void { 
+        _loaderListener.wait = function ():Void {
             if (getTimer() - this.startTime > 10000) {
                 if (!this.isLoading) {
                     MochiServices.disconnect();
@@ -186,26 +196,32 @@ class unitescore.mochi.MochiServices {
         };
         _loaderListener.waitInterval = setInterval(_loaderListener, "wait", 1000);
         _loader.addListener(_loaderListener);
-        _loader.loadClip(_servicesURL + "?listenLC=" + _listenChannelName + "&mochiad_options=" + escape(_root.mochiad_options), _clip);
-        
+        _loader.loadClip(servicesURL + "?listenLC=" + _listenChannelName + "&mochiad_options=" + escape(_root.mochiad_options) + "&api_version=" + getVersion(), _clip);
+
         // init send channel
         _sendChannel = new LocalConnection();
         _sendChannel._queue = [];
 
         return _clip;
     }
+    
+    private static function loadError(target_mc:MovieClip, errorCode:String, httpStatus:Number):Void {
+        trace("MochiServices could not load.");
+        MochiServices.disconnect();
+        MochiServices.onError.apply(null, [errorCode]);
+    };
 
     //
     //
     private static function onStatus (infoObject:Object):Void {
-        switch (infoObject.level) { 
+        switch (infoObject.level) {
             case 'error' :
                 _connected = false;
                 _listenChannel.connect(_listenChannelName);
-                break;  
+                break;
         }
     }
-    
+
     //
     //
     private static function listen ():Void {
@@ -218,14 +234,14 @@ class unitescore.mochi.MochiServices {
         _listenChannel.connect(_listenChannelName);
         trace("Waiting for MochiAds services to connect...");
     }
-    
+
     //
     //
-    private static function initComChannels ():Void {   
-        if (!_connected) {  
+    private static function initComChannels ():Void {
+        if (!_connected) {
             _sendChannel.onStatus = function (infoObject:Object):Void { MochiServices.onStatus(infoObject); };
             _sendChannel.send(_sendChannelName, "onReceive", {methodName: "handshakeDone"});
-            _sendChannel.send(_sendChannelName, "onReceive", { methodName: "registerGame", id: _id, clip: _clip, version: getVersion() } );
+            _sendChannel.send(_sendChannelName, "onReceive", { methodName: "registerGame", id: _id, clip: _clip, version: MochiServices.getVersion() } );
             _listenChannel.onStatus = function (infoObject:Object):Void { MochiServices.onStatus(infoObject); };
             _listenChannel.onReceive = function (pkg:Object):Void {
                 var cb:String = pkg.callbackID;
@@ -237,74 +253,91 @@ class unitescore.mochi.MochiServices {
                 if (method != undefined) method.apply(obj, pkg.args);
                 delete this._callbacks[cb];
             };
+            _listenChannel.onEvent = function (pkg:Object):Void {
+                switch( pkg.target )
+                {
+                    // MochiEvents tunnel
+                    case "events":
+                        MochiEvents.triggerEvent( pkg.event, pkg.args );
+                        break ;
+                    // MochiCoins tunnel
+                    case "coins":
+                        MochiCoins.triggerEvent( pkg.event, pkg.args );
+                        break ;
+                    // MochiSync tunnel
+                    case "sync":
+                        MochiServices.servicesSync.triggerEvent( pkg.event, pkg.args );
+                        break ;
+                }
+            }
             _listenChannel.onError = function ():Void { MochiServices.onError.apply(null, ["IOError"]); };
-            trace("connected!");
+            trace("[SERVICES_API] connected!");
             _connecting = false;
             _connected = true;
             while(_sendChannel._queue.length > 0) {
                 _sendChannel.send(_sendChannelName, "onReceive", _sendChannel._queue.shift());
             }
-        }   
+        }
     }
-    
+
     //
     //
     private static function flush (error:Boolean):Void {
-        
+
         var request:Object;
         var callback:Object;
-        
+
         while (_sendChannel._queue.length > 0) {
-            
+
             request = _sendChannel._queue.shift();
             delete callback;
             if (request.callbackID != null) callback = _listenChannel._callbacks[request.callbackID];
             delete _listenChannel._callbacks[request.callbackID];
-            
+
             if (error) {
                 handleError(request.args, callback.callbackObject, callback.callbackMethod);
             }
-            
-        }       
-        
+
+        }
+
     }
-    
+
     //
     //
     private static function handleError (args:Object, callbackObject:Object, callbackMethod:Object):Void {
-        
+
         if (args != null) {
             if (args.onError != null) {
                 args.onError.apply(null, ["NotConnected"]);
-            } 
+            }
             if (args.options != null && args.options.onError != null) {
                 args.options.onError.apply(null, ["NotConnected"]);
             }
         }
-        
+
         if (callbackMethod != null) {
-            
+
             args = { };
             args.error = true;
             args.errorCode = "NotConnected";
-        
+
             if (callbackObject != null && typeof(callbackMethod) == "string") {
                 callbackObject[callbackMethod](args);
             } else if (callbackMethod != null) {
                 callbackMethod.apply(args);
-            }   
-            
+            }
+
         }
-        
+
     }
-    
+
     //
     //
     public static function send (methodName:String, args:Object, callbackObject:Object, callbackMethod:Object):Void {
         if (_connected) {
             _sendChannel.send(_sendChannelName, "onReceive", {methodName: methodName, args: args, callbackID: _listenChannel._nextcallbackID});
         } else if (_clip == undefined || !_connecting) {
-            onError.apply(null, ["NotConnected"]);
+            trace( "Error: MochiServices not connected.   Please call MochiServices.connect().  Function: " + methodName);
             handleError(args, callbackObject, callbackMethod);
             flush(true);
             return;
@@ -314,34 +347,85 @@ class unitescore.mochi.MochiServices {
         _listenChannel._callbacks[_listenChannel._nextcallbackID] = {callbackObject: callbackObject, callbackMethod: callbackMethod};
         _listenChannel._nextcallbackID++;
     }
-    
+
     private static function urlOptions():Object {
         var opts = {};
-        if (_root.mochiad_options) {
+        var options:String;
+        
+        if (_root._url.indexOf("mochiad_options") != -1) {
+            var i:Number = _root._url.indexOf("mochiad_options") + "mochiad_options".length + 1;
+            options = _root._url.substr(i, _root._url.length);
+        } else if (_root.mochiad_options) {
+            options = _root.mochiad_options;
+        }
+
+        if (options) {
             var pairs = _root.mochiad_options.split("&");
             for (var i = 0; i < pairs.length; i++) {
                 var kv = pairs[i].split("=");
                 opts[unescape(kv[0])] = unescape(kv[1]);
             }
         }
-        
+
         return opts;
     }
-    
+
+    public static function warnID(bid:String, leaderboard:Boolean):Void {
+        bid = bid.toLowerCase();
+
+        if( bid.length != 16 )
+        {
+            trace( "WARNING: " + (leaderboard?"board":"game") + " ID is not the appropriate length" );
+            return ;
+        }
+        else if( bid == "1e113c7239048b3f" )
+        {
+            if( leaderboard )
+                trace( "WARNING: Using testing board ID");
+            else
+                trace( "WARNING: Using testing board ID as game ID");
+            return ;
+        }
+        else if( bid == "84993a1de4031cd8" )
+        {
+            if( leaderboard )
+                trace( "WARNING: Using testing game ID as board ID");
+            else
+                trace( "WARNING: Using testing game ID");
+            return ;
+        }
+
+        for( var i:Number = 0; i < bid.length; i++ )
+        {
+            switch( bid.charAt(i) )
+            {
+                case "0": case "1": case "2": case "3":
+                case "4": case "5": case "6": case "7":
+                case "8": case "9": case "a": case "b":
+                case "c": case "d": case "e": case "f":
+                    continue ;
+                default:
+                    trace( "WARNING: Board ID contains illegal characters: " + bid );
+                    return ;
+            }
+        }
+    }
+
+
     //
     //
     public static function addLinkEvent(url:String, burl:String, btn:MovieClip, onClick:Function):Void {
         var timeout:Number = 1500;
         var t0:Number = getTimer();
         var vars:Object = new Object();
-        vars["mav"] = getVersion();
+        vars["mav"] = MochiServices.getVersion();
         vars["swfv"] = btn.getSWFVersion() || 6;
         vars["swfurl"] = btn._url;
         vars["fv"] = System.capabilities.version;
         vars["os"] = System.capabilities.os;
         vars["lang"] = System.capabilities.language;
         vars["scres"] = (System.capabilities.screenResolutionX + "x" + System.capabilities.screenResolutionY);
-        
+
         var s:String = "?";
         var i:Number = 0;
         for (var x:String in vars) {
@@ -349,15 +433,15 @@ class unitescore.mochi.MochiServices {
             i++;
             s = s + x + "=" + escape(vars[x]);
         }
-                
+
         if (! (netupAttempted || _connected)) {
             var ping:MovieClip = btn.createEmptyMovieClip("ping", 777);
             var nettest:MovieClip = btn.createEmptyMovieClip("nettest", 778);
-            
+
             MochiServices.netupAttempted = true;
-        
+
             ping.loadMovie("http://x.mochiads.com/linkping.swf?t=" + getTimer());
-            
+
             nettest.onEnterFrame = function () {
                 if (ping._totalframes > 0 && (ping._totalframes == ping._framesloaded)) {
                     delete this.onEnterFrame;
@@ -367,7 +451,7 @@ class unitescore.mochi.MochiServices {
                 }
             }
         }
-    
+
         var clk:MovieClip = btn.createEmptyMovieClip("clk", 1001);
         clk._alpha = 0;
         clk.beginFill(0xFF0FF);
@@ -377,8 +461,8 @@ class unitescore.mochi.MochiServices {
         clk.lineTo(btn._width, 0);
         clk.lineTo(0, 0);
         clk.endFill();
-        
-        clk.onRelease = function () {            
+
+        clk.onRelease = function () {
             if (MochiServices.netup) {
                 getURL(url + s, "_blank");
             } else {
@@ -387,8 +471,21 @@ class unitescore.mochi.MochiServices {
 
             if (onClick != undefined) {
                 onClick();
-            }            
+            }
         }
-    
+
     }
+
+    //
+    //
+    public static function setContainer(clip:MovieClip) {
+        // not needed for AS2. in AS3 this does the addChild of the clip where Services is loaded in the passed clip.
+    }
+
+    //
+    //
+    public static function stayOnTop(clip:MovieClip) {
+        // not needed for AS2, as it can be done in loaded widget
+    }
+
 }
