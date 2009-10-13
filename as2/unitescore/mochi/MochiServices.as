@@ -16,7 +16,7 @@ class unitescore.mochi.MochiServices {
     private static var _loader:MovieClipLoader;
     private static var _loaderListener:Object;
 
-    private static var _servURL:String = "http://www.mochiads.com/static/lib/services/"
+    private static var _servURL:String = "http://www.mochiads.com/static/lib/services/";
     private static var _services:String = "services.swf";
     private static var _mochiLC:String = "MochiLC.swf";
     

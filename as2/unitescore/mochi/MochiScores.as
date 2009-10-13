@@ -213,7 +213,7 @@ class unitescore.mochi.MochiScores {
 
     //
     //
-    private static function doClose (args:Object) {
+    private static function doClose (args:Object) : Void {
 
         if (args.error == true) {
             if (args.errorCode == undefined) args.errorCode = "IOError";
