@@ -350,7 +350,7 @@ class unitescore.CUniteScoreAS2 {
 			// mindjolt
 			if (MindJoltAPI == undefined) {
 			  System.security.allowDomain("static.mindjolt.com");
-			  MindJoltAPI = createEmptyMovieClip("MindJoltAPI", getNextHighestDepth());
+			  MindJoltAPI = _root.createEmptyMovieClip("MindJoltAPI", getNextHighestDepth());
 			  var apiPath:String = _level0["mjPath"] || "http://static.mindjolt.com/api/as2/api_as2_local.swf";
 			  var apiLoader:MovieClipLoader = new MovieClipLoader();
 			  // create some listener functions to be called after our API is loaded
