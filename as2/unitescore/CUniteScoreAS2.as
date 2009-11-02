@@ -350,14 +350,15 @@ class unitescore.CUniteScoreAS2 {
 			// mindjolt
 			if (MindJoltAPI == undefined) {
 			  System.security.allowDomain("static.mindjolt.com");
-			  MindJoltAPI = _root.createEmptyMovieClip("MindJoltAPI", _root.getNextHighestDepth());
+			  MindJoltAPI = _level0.createEmptyMovieClip("MindJoltAPI", _level0.getNextHighestDepth());
+			  trace("CUniteScoreAS2 - init() - MindJoltAPI: " + MindJoltAPI); 
 			  var apiPath:String = _level0["mjPath"] || "http://static.mindjolt.com/api/as2/api_as2_local.swf";
 			  var apiLoader:MovieClipLoader = new MovieClipLoader();
 			  // create some listener functions to be called after our API is loaded
 			  var apiLoadListener = new Object();
 			  apiLoader.addListener(apiLoadListener);
-			  apiLoadListener.onLoadInit = function() { MindJoltAPI.service.connect(postMindJoltAPIConnect); }
-			  apiLoadListener.onLoadError = function() { trace("[MindJoltAPI] failed to load."); }
+			  apiLoadListener.onLoadInit = function() : Void { _level0.MindJoltAPI.service.connect(postMindJoltAPIConnect); }
+			  apiLoadListener.onLoadError = function() : Void { trace("[MindJoltAPI] failed to load."); }
 
 			  // now load the API
 			  apiLoader.loadClip(apiPath, MindJoltAPI);
@@ -420,7 +421,7 @@ class unitescore.CUniteScoreAS2 {
 	/**
 	 * Mindjolt. This function is called after everything has been successfully loaded
 	 */
-	private function postMindJoltAPIConnect (success:Boolean) {  
-	  trace("[MindJoltAPI] service successfully loaded"); 
+	private function postMindJoltAPIConnect(success:Boolean) : Void	{  
+	  trace("CUniteScoreAS2 - [MindJoltAPI] service successfully loaded"); 
 	}
 }
